@@ -124,20 +124,16 @@ def getBSRNData(file):
     return result_array
 
 
-if __name__ == "__main__":
-    BSRN_FILE_PATH = "/Users/u300844/t7home/tmachnitzki/psrad/BSRN/"
-    aeronetPath = "/Users/u300844/t7home/tmachnitzki/psrad/aeronet_inversion/INV/DUBOV/ALL_POINTS/"
-    atms = ['midlatitude-summer', 'midlatitude-winter', 'subarctic-summer', 'subarctic-winter', 'tropical']
-
-    datestr = "20100710"
-    station = "Barrow"
-    tag = "bar"
-    atm_name = atms[3]
+def BSRN2IWV(datestr,station,tag,atm_name):
 
     aeronet = get_iwv_from_aeronet(aeronetPath=aeronetPath, station=station)
     aeronet_at_date = getIWVAtDate(datestr,aeronet)
     # aeronet_good_dates = searchGoodDate(aeronet_at_date)
     aeronet_good_dates = aeronet_at_date
+    if len(aeronet_good_dates) == 0:
+        print("No good dates found in aeronet for this month")
+        print("--------------------------------------------------")
+        return None
 
     BSRN_FILE_NAME = tag + "_radiation_" + datestr[:4] + "-" + datestr[4:6] + ".tab"
     FILE = BSRN_FILE_PATH + station + "/" + BSRN_FILE_NAME
@@ -147,13 +143,15 @@ if __name__ == "__main__":
     bsrn_raw = download_bsrn(tag,datestr)
     if bsrn_raw == None:
         print("No data to continue")
-        sys.exit(1)
+        print("--------------------------------------------------")
+        return None
 
     atm = getAtm(atm_name)  # reads the _dependent.csv file
 
     #prepare File for writing out data:
-    with open("results/" + station + datestr[:-2] + ".csv","w") as f:
+    with open("results/" + station + datestr[0:6] + ".csv","w") as f:
         f.write("#Calculated and measured integrated watervapor for %s.\n" %station)
+        f.write("#Used atmosphere: %s\n"%atm_name)
         f.write("\n")
         f.write("Date ; Time ; T[K] ; LWdown[W/m2] ; Calculated_IWV[kg/m2] ; aeronet_IWV[kg/m2]\n")
 
@@ -164,8 +162,6 @@ if __name__ == "__main__":
 
             bsrn = getValueAtDate(good_date[0], bsrn_raw)
             # print(bsrn)
-
-
             elements_cl = Parallel(n_jobs=1, verbose=0)(delayed(getIWVFromTable)(bsrn[i,0],bsrn[i,1],bsrn[i,2], atm_name,atm) for i in range(0,len(bsrn[:]),1))
 
             date_cl = []
@@ -190,3 +186,33 @@ if __name__ == "__main__":
                 str(IWV['LW'][0]) + " ; " +
                 str(IWV['IWV'][0]) + " ; " +
                 str(IWV['IWV_AERONET']) + "\n")
+
+    print("----------------------------------------------------")
+
+
+if __name__ == "__main__":
+    BSRN_FILE_PATH = "/Users/u300844/t7home/tmachnitzki/psrad/BSRN/"
+    aeronetPath = "/Users/u300844/t7home/tmachnitzki/psrad/aeronet_inversion/INV/DUBOV/ALL_POINTS/"
+    atms = ['midlatitude-summer', 'midlatitude-winter', 'subarctic-summer', 'subarctic-winter', 'tropical']
+
+    for y in range(2000,2017,1):
+        year_str = str(y)
+
+        # station = "Barrow"
+        # tag = "bar"
+
+        station = "SEDE_BOKER"
+        tag = "sbo"
+
+        atm = "tropical"
+
+        for m in range(0,12,1):
+            datestr = year_str + str(m+1).zfill(2)
+            print(datestr)
+            BSRN2IWV(datestr=datestr,station=station,tag=tag,atm_name=atm)
+
+    #TODO: Filtern von -777 values
+    #TODO: Filtern von Werten bei nacht
+
+
+

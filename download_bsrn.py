@@ -6,7 +6,6 @@ from datetime import datetime as dt
 import calendar
 
 def download_bsrn(station_tag,datestr):
-    station_tag = "bar"
     path = station_tag
     year_str = datestr[:4]
     month_str = datestr[4:6]
