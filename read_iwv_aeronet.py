@@ -43,7 +43,7 @@ def getIWVAtDate(datestr,array):
     return_list = []
 
     for line in array:
-        if line[0].strftime("%Y%m%d") == datestr:
+        if line[0].strftime("%Y%m") == datestr[:6]:
             return_list.append(line)
 
     return_array = np.asarray(return_list)
@@ -78,7 +78,7 @@ if __name__ == "__main__":
     datestr = "20110628"   #Day where you want to have the iwv from
 
 
-    station = get_iwv_array(aeronetPath=aeronetPath, station=stationName)
+    station = get_iwv_from_aeronet(aeronetPath=aeronetPath, station=stationName)
 
     good_dates = searchGoodDate(station)
     # iwv = getIWVAtDate(datestr,station)

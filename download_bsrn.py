@@ -5,26 +5,35 @@ import numpy as np
 from datetime import datetime as dt
 import calendar
 
-def download_bsrn(station_tag,MMYYYY):
+def download_bsrn(station_tag,datestr):
     station_tag = "bar"
     path = station_tag
-    MMYY = MMYYYY[:2] + MMYYYY[-2:]
+    year_str = datestr[:4]
+    month_str = datestr[4:6]
+    day_str = datestr[6:]
+    MMYY = month_str + year_str[2:]
     filename = station_tag + MMYY + ".dat.gz"
 
     print(filename)
 
-    month = int(MMYY[:2])
-    year = int(MMYYYY[-4:])
+    month = int(month_str)
+    year = int(year_str)
 
     days_in_month = calendar.monthrange(year,month)[1]
     dates = []
     lw = []
+    temp = []
 
     # download data from ftp-server:
     ftp = ftplib.FTP("ftp.bsrn.awi.de")
     ftp.login("bsrnftp", "bsrn1")
     ftp.cwd(path)
-    ftp.retrbinary("RETR " + filename, open("tmp/"+filename, 'wb').write)
+    if filename in ftp.nlst():
+        ftp.retrbinary("RETR " + filename, open("tmp/"+filename, 'wb').write)
+    else:
+        print("File %s does not exist on ftp.bsrn.awi.de"%filename)
+        return None
+
     ftp.quit()
 
     counter = 0
@@ -57,12 +66,16 @@ def download_bsrn(station_tag,MMYYYY):
             dates.append(line_date)
 
             #get the data:
-            line_lw = line2[4]
+            line_lw = float(line2[4])
             lw.append(line_lw)
+
+            line_temp = float(line2[8])
+            temp.append(line_temp)
 
     os.remove("tmp/" + filename)
 
     dates = np.asarray(dates)
     lw = np.asarray(lw)
-    array = np.stack((dates,lw),axis=1)
+    temp = np.asarray(temp)
+    array = np.stack((dates,temp,lw),axis=1)
     return array

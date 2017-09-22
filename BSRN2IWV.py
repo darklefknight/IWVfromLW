@@ -4,14 +4,24 @@ import numpy as np
 import matplotlib.dates as mdate
 from joblib import Parallel, delayed
 from datetime import datetime as dt
-from read_iwv_aeronet import get_iwv_from_aeronet
+from read_iwv_aeronet import get_iwv_from_aeronet,searchGoodDate,getIWVAtDate
+from download_bsrn import download_bsrn
+import sys
 
-def getValueAtDate(datestr, array):
+def getValueAtDate(date, array):
     return_list = []
     for line in array:
-        if line[0].strftime("%Y%m%d") == datestr:
-            return_list.append(line)
-            continue
+        delta = line[0] - date
+        # print(delta)
+        # print(line[0])
+        # print(date)
+        # print("")
+        if delta.days == 0:
+            # print("Delta.days == 0")
+            if abs(delta.seconds) <=60 :
+                return_list.append(line)
+                # print(delta)
+                continue
 
     return_array = np.asarray(return_list)
     return return_array
@@ -116,35 +126,67 @@ def getBSRNData(file):
 
 if __name__ == "__main__":
     BSRN_FILE_PATH = "/Users/u300844/t7home/tmachnitzki/psrad/BSRN/"
+    aeronetPath = "/Users/u300844/t7home/tmachnitzki/psrad/aeronet_inversion/INV/DUBOV/ALL_POINTS/"
     atms = ['midlatitude-summer', 'midlatitude-winter', 'subarctic-summer', 'subarctic-winter', 'tropical']
 
-    datestr = "20070610"
+    datestr = "20100710"
     station = "Barrow"
-    tag = "BAR"
+    tag = "bar"
     atm_name = atms[3]
+
+    aeronet = get_iwv_from_aeronet(aeronetPath=aeronetPath, station=station)
+    aeronet_at_date = getIWVAtDate(datestr,aeronet)
+    # aeronet_good_dates = searchGoodDate(aeronet_at_date)
+    aeronet_good_dates = aeronet_at_date
 
     BSRN_FILE_NAME = tag + "_radiation_" + datestr[:4] + "-" + datestr[4:6] + ".tab"
     FILE = BSRN_FILE_PATH + station + "/" + BSRN_FILE_NAME
 
     print(station + ", " + tag + ", " + atm_name + ", " + datestr)
 
-    bsrn = getBSRNData(FILE)
-    bsrn = getValueAtDate(datestr, bsrn)
+    bsrn_raw = download_bsrn(tag,datestr)
+    if bsrn_raw == None:
+        print("No data to continue")
+        sys.exit(1)
 
-    atm = getAtm(atm_name) #reads the _dependent.csv file
-    elements_cl = Parallel(n_jobs=-1, verbose=5)(delayed(getIWVFromTable)(bsrn[i,0],bsrn[i,1],bsrn[i,2], atm_name,atm) for i in range(0,len(bsrn[:]),1))
+    atm = getAtm(atm_name)  # reads the _dependent.csv file
 
-    date_cl = []
-    for element in elements_cl:
-            date_cl.append(element[0])
-    dates = np.asarray(date_cl)
+    #prepare File for writing out data:
+    with open("results/" + station + datestr[:-2] + ".csv","w") as f:
+        f.write("#Calculated and measured integrated watervapor for %s.\n" %station)
+        f.write("\n")
+        f.write("Date ; Time ; T[K] ; LWdown[W/m2] ; Calculated_IWV[kg/m2] ; aeronet_IWV[kg/m2]\n")
 
-    array = np.array([x for x in elements_cl],dtype=([("date", "S20"), ("T", "f8"), ("LW", "f8"), ("iwv", "f8"),("distance","f8")]))
+        for good_date in aeronet_good_dates:
 
-    IWV = {}
-    IWV['dates'] = dates
-    IWV["T"] = array['T']
-    IWV["LW"] = array['LW']
-    IWV["IWV"] = array["iwv"]
-    IWV["distance"] = array["distance"]
+            good_str = good_date
+            # print(good_date)
 
+            bsrn = getValueAtDate(good_date[0], bsrn_raw)
+            # print(bsrn)
+
+
+            elements_cl = Parallel(n_jobs=1, verbose=0)(delayed(getIWVFromTable)(bsrn[i,0],bsrn[i,1],bsrn[i,2], atm_name,atm) for i in range(0,len(bsrn[:]),1))
+
+            date_cl = []
+            for element in elements_cl:
+                    date_cl.append(element[0])
+            dates = np.asarray(date_cl)
+
+            array = np.array([x for x in elements_cl],dtype=([("date", "S20"), ("T", "f8"), ("LW", "f8"), ("iwv", "f8"),("distance","f8")]))
+
+            IWV = {}
+            IWV['date'] = dates
+            IWV["T"] = array['T']
+            IWV["LW"] = array['LW']
+            IWV["IWV"] = array["iwv"]
+            IWV["distance"] = array["distance"]
+            IWV["IWV_AERONET"] =good_date[1] * 10
+
+            f.write(
+                IWV['date'][0].strftime("%x") + " ; " +
+                IWV['date'][0].strftime("%X") + " ; " +
+                str(IWV['T'][0]) + " ; " +
+                str(IWV['LW'][0]) + " ; " +
+                str(IWV['IWV'][0]) + " ; " +
+                str(IWV['IWV_AERONET']) + "\n")
