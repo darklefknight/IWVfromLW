@@ -66,64 +66,6 @@ def getAtm(atm_name):
     return atm
 
 
-def getBSRNData(file):
-    print("Get data from %s..." % file)
-
-    g=open(file,"rb")
-    lines = g.readlines()
-    liste = []
-    for line in lines:
-        liste.append(line.decode())
-    g.close()
-
-    #Removing the header:
-    for i,line in enumerate(liste):
-        if "*/" in line:
-            break
-
-    liste = liste[i+1:]
-    splitted = liste[0].split("\t")
-    for key in splitted: print(key)
-    date_index = splitted.index('Date/Time')
-    T_index = splitted.index('T2 [°C]')
-    LW_index = splitted.index('LWD [W/m**2]')
-
-    T = []
-    LW = []
-    date = []
-    data_list =[]
-    for i,element in enumerate(liste[1:]):
-        splitted = element.split("\t")
-        date_line = splitted[date_index]
-        T_line = splitted[T_index]
-        LW_line = splitted[LW_index]
-        line_year = int(date_line[:4])
-        line_month = int(date_line[5:7])
-        line_day = int(date_line[8:10])
-        line_hour = int(date_line[-5:-3])
-        line_min = int(date_line[-2:])
-        date_line_date = dt(line_year,line_month,line_day,line_hour,line_min)
-
-        date.append(date_line_date)
-
-        if T_line != "":
-            T.append(float(T_line))
-        else:
-            T.append(np.nan)
-
-        if LW_line != "":
-            LW.append(float(LW_line))
-        else:
-            LW.append(np.nan)
-
-        data_list.append((T[i],LW[i]))
-
-    array = np.array([x for x in data_list],dtype=([("T","f8"),("LW","f8")]))
-    date = np.asarray(date)
-    result_array = np.stack((date,array['T'],array['LW']),axis=1)
-    return result_array
-
-
 def BSRN2IWV(datestr,station,tag,atm_name):
 
     aeronet = get_iwv_from_aeronet(aeronetPath=aeronetPath, station=station)
@@ -131,7 +73,7 @@ def BSRN2IWV(datestr,station,tag,atm_name):
     # aeronet_good_dates = searchGoodDate(aeronet_at_date)
     aeronet_good_dates = aeronet_at_date
     if len(aeronet_good_dates) == 0:
-        print("No good dates found in aeronet for this month")
+        print("No good dates found in aeronet for this month in aeronet.")
         print("--------------------------------------------------")
         return None
 
@@ -179,13 +121,15 @@ def BSRN2IWV(datestr,station,tag,atm_name):
             IWV["distance"] = array["distance"]
             IWV["IWV_AERONET"] =good_date[1] * 10
 
-            f.write(
-                IWV['date'][0].strftime("%x") + " ; " +
-                IWV['date'][0].strftime("%X") + " ; " +
-                str(IWV['T'][0]) + " ; " +
-                str(IWV['LW'][0]) + " ; " +
-                str(IWV['IWV'][0]) + " ; " +
-                str(IWV['IWV_AERONET']) + "\n")
+            if IWV['IWV'][0] != -777:
+                if 10 < IWV['date'][0].hour < 18:
+                    f.write(
+                        IWV['date'][0].strftime("%x") + " ; " +
+                        IWV['date'][0].strftime("%X") + " ; " +
+                        str(IWV['T'][0]) + " ; " +
+                        str(IWV['LW'][0]) + " ; " +
+                        str(IWV['IWV'][0]) + " ; " +
+                        str(IWV['IWV_AERONET']) + "\n")
 
     print("----------------------------------------------------")
 
@@ -211,8 +155,6 @@ if __name__ == "__main__":
             print(datestr)
             BSRN2IWV(datestr=datestr,station=station,tag=tag,atm_name=atm)
 
-    #TODO: Filtern von -777 values
-    #TODO: Filtern von Werten bei nacht
 
 
 
