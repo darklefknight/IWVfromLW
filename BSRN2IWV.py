@@ -55,7 +55,8 @@ def getIWVFromTable(date, temp, flx, atm_name, atm):
 
 
 def getAtm(atm_name):
-    PATH = "/Users/u300844/t7home/tmachnitzki/psrad/python_svn/wv_tables/"
+    # PATH = "/Users/u300844/t7home/tmachnitzki/psrad/python_svn/wv_tables/"
+    PATH = "/scratch/uni/u237/users/tmachnitzki/psrad/python_svn/wv_tables/"
     FILE = atm_name + "_dependent.csv"
 
     with open(PATH + FILE, "rb") as f:
@@ -130,6 +131,10 @@ def BSRN2IWV(datestr,station,tag,atm_name):
             IWV["distance"] = array["distance"]
             IWV["IWV_AERONET"] =good_date[1] * 10
 
+            if len(IWV['IWV']) == 0:
+                print('weird mistake.')
+                continue
+
             if IWV['IWV'][0] != -777:
                 if 0 < IWV['date'][0].hour <24:
                     line_counter += 1
@@ -157,29 +162,44 @@ def startIWV(y_in,station,tag,atm):
 
 
 if __name__ == "__main__":
-    BSRN_FILE_PATH = "/Users/u300844/t7home/tmachnitzki/psrad/BSRN/"
-    aeronetPath = "/Users/u300844/t7home/tmachnitzki/psrad/aeronet_inversion/INV/DUBOV/ALL_POINTS/"
+    #for local:
+    # BSRN_FILE_PATH = "/Users/u300844/t7home/tmachnitzki/psrad/BSRN/"
+    # aeronetPath = "/Users/u300844/t7home/tmachnitzki/psrad/aeronet_inversion/INV/DUBOV/ALL_POINTS/"
+
+    #for thunder:
+    BSRN_FILE_PATH = "/scratch/uni/u237/users/tmachnitzki/psrad/BSRN/"
+    aeronetPath = "/scratch/uni/u237/users/tmachnitzki/psrad/aeronet_inversion/INV/DUBOV/ALL_POINTS/"
+
     atms = ['midlatitude-summer', 'midlatitude-winter', 'subarctic-summer', 'subarctic-winter', 'tropical']
 
 
-    station = "Barrow"
-    tag = "bar"
+    # station = "Barrow"
+    # tag = "bar"
     # atm = "subarctic-summer"
 
     # station = "SEDE_BOKER"
     # tag = "sbo"
     # atm = "tropical"
 
-    # station = "Brasilia"  #No dates in aeronet after 1995
-    # tag = "brb"
-
     # station = "Cart_Site"
     # tag = "e13"
     # atm = "midlatitude-winter"
 
+    # station = "Cabauw"
+    # tag = "cab"
 
-    for atm in atms:
-        Parallel(n_jobs=-1,verbose=5)(delayed(startIWV)(y,station,tag,atm) for y in range(2000,2017,1))
+    # station = "Gobabeb"
+    # tag = "gob"
+
+    station = "Sao_Martinho_SONDA"
+    tag = "sms"
+
+    stations = ["Barrow","SEDE_BOKER","Cart_Site","Cabauw","Gobabeb"]
+    tags = ["bar", "sbo","e13","cab","gob"]
+
+    for station, tag in zip(stations,tags):
+        for atm in atms:
+            Parallel(n_jobs=-1,verbose=5)(delayed(startIWV)(y,station,tag,atm) for y in range(2000,2017,1))
 
 
 

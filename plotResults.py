@@ -74,8 +74,8 @@ def get_results(station,atm):
 
 
 if __name__ == "__main__":
-
-    atm = "trpoical"
+    atms = ['midlatitude-summer', 'midlatitude-winter', 'subarctic-summer', 'subarctic-winter', 'tropical']
+    # atm = "tropical"
     # atm= "midlatitude-summer"
     # atm = "midlatitude-winter"
     # atm = "subarctic-winter"
@@ -83,38 +83,42 @@ if __name__ == "__main__":
 
 
     # station = "Barrow"
-    station="SEDE_BOKER"
+    # station="SEDE_BOKER"
     # station = "Cart_Site"
+    # station = "Gobabeb"
+
+    stations = ["Barrow", "SEDE_BOKER", "Cart_Site"]#, "Cabauw", "Gobabeb"]
+
+    for station in stations:
+        for atm in atms:
+            IWV = get_results(station,atm)
 
 
-    IWV = get_results(station,atm)
+            fig = plt.figure(figsize=(16,9))
+            fig.suptitle("Results for " + station + "\nUsed atmosphere: " + atm)
+            ax1 = plt.subplot(211)
+            ax1.plot(IWV['date'],IWV['IWV'],label="Calculated IWV",lw=1, color = "#728A19")
+            ax1.plot(IWV['date'],IWV['IWV_AERONET'],label="AERONET-Data",lw=1, color = "#FE2712")
+            ax1.legend(loc="upper left")
+            ax1.grid()
+            ax1.set_xlabel("Time")
+            ax1.set_ylabel("IWV [kg/m2]")
+            ax1.set_ylim([0,60])
+
+            ax2 = plt.subplot(212)
+            ax2.plot(IWV['date'],np.subtract(IWV['IWV'],IWV['IWV_AERONET']),color="#347B98",lw=1, label="Difference")
+            ax2.set_ylim([-5,20])
+            ax2.grid()
+            ax2.set_xlabel("Time")
+            ax2.set_ylabel("Difference between calculated and measured IWV [kg/m2]")
 
 
-    fig = plt.figure(figsize=(16,9))
-    fig.suptitle("Results for " + station + "\nUsed atmosphere: " + atm)
-    ax1 = plt.subplot(211)
-    ax1.plot(IWV['date'],IWV['IWV'],label="Calculated IWV",lw=1, color = "#728A19")
-    ax1.plot(IWV['date'],IWV['IWV_AERONET'],label="AERONET-Data",lw=1, color = "#FE2712")
-    ax1.legend(loc="upper left")
-    ax1.grid()
-    ax1.set_xlabel("Time")
-    ax1.set_ylabel("IWV [kg/m2]")
-    ax1.set_ylim([0,60])
+            ax2mean = np.mean(np.subtract(IWV['IWV'],IWV['IWV_AERONET']))
+            ax2.plot(IWV['date'],[ax2mean for i in range(len(IWV['date']))],ls="--", color="#347B98", label="Mean Difference = %f kg/m2" %ax2mean)
 
-    ax2 = plt.subplot(212)
-    ax2.plot(IWV['date'],np.subtract(IWV['IWV'],IWV['IWV_AERONET']),color="#347B98",lw=1, label="Difference")
-    ax2.set_ylim([-5,20])
-    ax2.grid()
-    ax2.set_xlabel("Time")
-    ax2.set_ylabel("Difference between calculated and measured IWV [kg/m2]")
+            ax2.legend(loc="upper left")
 
-
-    ax2mean = np.mean(np.subtract(IWV['IWV'],IWV['IWV_AERONET']))
-    ax2.plot(IWV['date'],[ax2mean for i in range(len(IWV['date']))],ls="--", color="#347B98", label="Mean Difference = %f kg/m2" %ax2mean)
-
-    ax2.legend(loc="upper left")
-
-    plt.savefig("figures/" + station+"_" + atm+".png")
+            plt.savefig("figures/" + station+"_" + atm+".png")
 
 
 

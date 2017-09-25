@@ -11,7 +11,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import typhon as tp
 import os
-import psrad
+try:
+    import psrad
+except:
+    print("PSRAD NOT LOADED")
 from wv_converter import VMR2RH, RH2VMR
 from joblib import Parallel,delayed
 
@@ -127,13 +130,15 @@ def start_calculations(fascod_atm_raw,temp, h2o_low,h2o_high,h2o_step, LIMIT_HEI
 
         # fascod_atm['H2O'] = RH2VMR(h2o, fascod_atm['p'], fascod_atm['t'])  #change relative humidity in all hights to be the same
         fascod_atm['H2O'][0:3] = RH2VMR(h2o, fascod_atm['p'][0:3],
-                                        fascod_atm['t'][0:3])  # change relative humidity in all hights to be the same
+                                        fascod_atm['t'][0:3])  # change relative humidity in all lower hights to be the same fixed value
+        fascod_atm['H2O'][3:8] = RH2VMR(fascod_RH[3:8],fascod_atm['p'][3:8],fascod_atm['t'][3:8]) #change relative humidity in all upper hights to stay relative the same with changing temperature
+
         result_temp, H2O, T = calc_hr(fascod_atm, 'lw')  # <------------- PSRAD calculation. T = surface temperature
 
         if LIMIT_HEIGHT:
             RH = VMR2RH(H2O[:12], fascod_atm['p'][:12], fascod_atm['t'][:12])  # Relative Humidity in all hights
             H2O_integrated = tp.atmosphere.iwv(H2O[:12], fascod_atm['p'][:12], fascod_atm['t'][:12],
-                                               fascod_atm['z'][:12])  # integrated water vapor
+                                               fascod_atm['z'][:12])  # integrated water vapor #TODO: make h2o not linear but log when integrating
 
         else:
             RH = VMR2RH(H2O, fascod_atm['p'], fascod_atm['t'])
@@ -153,7 +158,7 @@ if __name__ == '__main__':
     atm_names =  sorted((os.listdir('/scratch/uni/u237/users/tlang/arts-xml-data/planets/Earth/Fascod') ))
     del atm_names[atm_names.index('README')]
     
-    LIMIT_HEIGHT = False  #if True: iwv just up to 10 Km. Else up to 95 Km
+    LIMIT_HEIGHT = True  #if True: iwv just up to 10 Km. Else up to 95 Km
     Rw = tp.atmosphere.constants.gas_constant_water_vapor #Gaskonstante von Wasserdampf
 
     t_low =  -30  #Darf nicht größer 0 sein
@@ -175,13 +180,15 @@ if __name__ == '__main__':
         for key in fascod_atm_raw.keys():
             fascod_atm_raw[key] = fascod_atm_raw[key][1:] #removing the 1st value of each atmosphere
 
+        fascod_RH = VMR2RH(fascod_atm_raw['H2O'],fascod_atm_raw['p'],fascod_atm_raw['t'])
+
         atm_result = np.zeros([int((h2o_high-abs(h2o_low))*int(1/h2o_step))+1,int(1+(abs(t_low)+t_high)*int(1/t_step))])  #Legt die Größe des Ergebnis-Arrays fest
         result_string_head = ["Temperature;RH;IWV;flxd"] #Creating header of the resulting .csv-file
         Tsfc = []
         H2O_result = []
 
         # for temp in np.arange(t_low,t_high+1e-9,t_step):    #iterating over temperature corrections
-        elements_cl = Parallel(n_jobs=-1, verbose=5)(delayed(start_calculations)(fascod_atm_raw,temp,h2o_low,h2o_high,h2o_step) for temp in np.arange(t_low,t_high+1e-9,t_step))
+        elements_cl = Parallel(n_jobs=-1, verbose=5)(delayed(start_calculations)(fascod_atm_raw,temp,h2o_low,h2o_high,h2o_step,LIMIT_HEIGHT) for temp in np.arange(t_low,t_high+1e-9,t_step))
 
         result_string = result_string_head + sum(elements_cl,[])
 
