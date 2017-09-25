@@ -40,11 +40,11 @@ def download_bsrn(station_tag,datestr):
         #skip header:
         old_line = " "
         line = f.readline().decode()
-        while not "*C0100" in line:
+        while ((not "*C0100" in line) and (not "*U0100" in line)):
             line = f.readline().decode()
             if line == old_line:
                 counter += 1
-                if counter == 100:
+                if counter == 1000:
                     print("No data in file %s" %filename)
                     return None
 

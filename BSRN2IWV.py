@@ -7,6 +7,7 @@ from datetime import datetime as dt
 from read_iwv_aeronet import get_iwv_from_aeronet,searchGoodDate,getIWVAtDate
 from download_bsrn import download_bsrn
 import sys
+import os
 
 def getValueAtDate(date, array):
     return_list = []
@@ -67,13 +68,14 @@ def getAtm(atm_name):
 
 
 def BSRN2IWV(datestr,station,tag,atm_name):
+    line_counter = 0
 
     aeronet = get_iwv_from_aeronet(aeronetPath=aeronetPath, station=station)
     aeronet_at_date = getIWVAtDate(datestr,aeronet)
     # aeronet_good_dates = searchGoodDate(aeronet_at_date)
     aeronet_good_dates = aeronet_at_date
     if len(aeronet_good_dates) == 0:
-        print("No good dates found in aeronet for this month in aeronet.")
+        print("No good dates found in AERONET for this month.")
         print("--------------------------------------------------")
         return None
 
@@ -84,18 +86,24 @@ def BSRN2IWV(datestr,station,tag,atm_name):
 
     bsrn_raw = download_bsrn(tag,datestr)
     if bsrn_raw == None:
-        print("No data to continue")
+        print("No data in BSRN to continue")
         print("--------------------------------------------------")
         return None
 
     atm = getAtm(atm_name)  # reads the _dependent.csv file
 
     #prepare File for writing out data:
-    with open("results/" + station + datestr[0:6] + ".csv","w") as f:
+
+    result_path = "results/"+station+"/"+atm_name+"/"
+
+    if not os.path.isdir(result_path):
+        os.makedirs(result_path)
+    write_file = result_path + station + datestr[0:6] + ".csv"
+    with open(write_file,"w") as f:
         f.write("#Calculated and measured integrated watervapor for %s.\n" %station)
         f.write("#Used atmosphere: %s\n"%atm_name)
         f.write("\n")
-        f.write("Date ; Time ; T[K] ; LWdown[W/m2] ; Calculated_IWV[kg/m2] ; aeronet_IWV[kg/m2]\n")
+        f.write("Date ; Time ; T[K] ; LWdown[W/m2] ; Calculated_IWV[kg/m2] ; aeronet_IWV[kg/m2] ; Distance\n")
 
         for good_date in aeronet_good_dates:
 
@@ -104,7 +112,8 @@ def BSRN2IWV(datestr,station,tag,atm_name):
 
             bsrn = getValueAtDate(good_date[0], bsrn_raw)
             # print(bsrn)
-            elements_cl = Parallel(n_jobs=1, verbose=0)(delayed(getIWVFromTable)(bsrn[i,0],bsrn[i,1],bsrn[i,2], atm_name,atm) for i in range(0,len(bsrn[:]),1))
+            # elements_cl = Parallel(n_jobs=2, verbose=0)(delayed(getIWVFromTable)(bsrn[i,0],bsrn[i,1],bsrn[i,2], atm_name,atm) for i in range(0,len(bsrn[:]),1))
+            elements_cl = [getIWVFromTable(bsrn[i,0],bsrn[i,1],bsrn[i,2], atm_name,atm) for i in range(0,len(bsrn[:]),1)]
 
             date_cl = []
             for element in elements_cl:
@@ -122,16 +131,29 @@ def BSRN2IWV(datestr,station,tag,atm_name):
             IWV["IWV_AERONET"] =good_date[1] * 10
 
             if IWV['IWV'][0] != -777:
-                if 10 < IWV['date'][0].hour < 18:
+                if 0 < IWV['date'][0].hour <24:
+                    line_counter += 1
                     f.write(
                         IWV['date'][0].strftime("%x") + " ; " +
                         IWV['date'][0].strftime("%X") + " ; " +
                         str(IWV['T'][0]) + " ; " +
                         str(IWV['LW'][0]) + " ; " +
                         str(IWV['IWV'][0]) + " ; " +
-                        str(IWV['IWV_AERONET']) + "\n")
+                        str(IWV['IWV_AERONET']) + " ; " +
+                        str(IWV['distance'][0]) +
+                        "\n")
 
+    if line_counter == 0:
+        os.remove(write_file)
+        print("No valid Data written for this month")
     print("----------------------------------------------------")
+
+def startIWV(y_in,station,tag,atm):
+    year_str = str(y_in)
+    for m in range(0, 12, 1):
+        datestr = year_str + str(m + 1).zfill(2)
+        print(datestr)
+        BSRN2IWV(datestr=datestr, station=station, tag=tag, atm_name=atm)
 
 
 if __name__ == "__main__":
@@ -139,21 +161,26 @@ if __name__ == "__main__":
     aeronetPath = "/Users/u300844/t7home/tmachnitzki/psrad/aeronet_inversion/INV/DUBOV/ALL_POINTS/"
     atms = ['midlatitude-summer', 'midlatitude-winter', 'subarctic-summer', 'subarctic-winter', 'tropical']
 
-    for y in range(2000,2017,1):
-        year_str = str(y)
 
-        # station = "Barrow"
-        # tag = "bar"
+    station = "Barrow"
+    tag = "bar"
+    # atm = "subarctic-summer"
 
-        station = "SEDE_BOKER"
-        tag = "sbo"
+    # station = "SEDE_BOKER"
+    # tag = "sbo"
+    # atm = "tropical"
 
-        atm = "tropical"
+    # station = "Brasilia"  #No dates in aeronet after 1995
+    # tag = "brb"
 
-        for m in range(0,12,1):
-            datestr = year_str + str(m+1).zfill(2)
-            print(datestr)
-            BSRN2IWV(datestr=datestr,station=station,tag=tag,atm_name=atm)
+    # station = "Cart_Site"
+    # tag = "e13"
+    # atm = "midlatitude-winter"
+
+
+    for atm in atms:
+        Parallel(n_jobs=-1,verbose=5)(delayed(startIWV)(y,station,tag,atm) for y in range(2000,2017,1))
+
 
 
 
