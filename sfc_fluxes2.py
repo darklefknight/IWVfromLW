@@ -131,7 +131,9 @@ def start_calculations(fascod_atm_raw,temp, h2o_low,h2o_high,h2o_step, LIMIT_HEI
         # fascod_atm['H2O'] = RH2VMR(h2o, fascod_atm['p'], fascod_atm['t'])  #change relative humidity in all hights to be the same
         fascod_atm['H2O'][0:3] = RH2VMR(h2o, fascod_atm['p'][0:3],
                                         fascod_atm['t'][0:3])  # change relative humidity in all lower hights to be the same fixed value
-        fascod_atm['H2O'][3:8] = RH2VMR(fascod_RH[3:8],fascod_atm['p'][3:8],fascod_atm['t'][3:8]) #change relative humidity in all upper hights to stay relative the same with changing temperature
+
+        # next line makes results worse:
+        # fascod_atm['H2O'][3:8] = RH2VMR(fascod_RH[3:8],fascod_atm['p'][3:8],fascod_atm['t'][3:8]) #change relative humidity in all upper hights to stay relative the same with changing temperature
 
         result_temp, H2O, T = calc_hr(fascod_atm, 'lw')  # <------------- PSRAD calculation. T = surface temperature
 

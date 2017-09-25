@@ -87,7 +87,7 @@ if __name__ == "__main__":
     # station = "Cart_Site"
     # station = "Gobabeb"
 
-    stations = ["Barrow", "SEDE_BOKER", "Cart_Site"]#, "Cabauw", "Gobabeb"]
+    stations = ["Barrow", "SEDE_BOKER"]#, "Cart_Site", "Cabauw", "Gobabeb"]
 
     for station in stations:
         for atm in atms:
