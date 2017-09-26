@@ -8,6 +8,7 @@ from read_iwv_aeronet import get_iwv_from_aeronet,searchGoodDate,getIWVAtDate
 from download_bsrn import download_bsrn
 import sys
 import os
+import shutil
 
 def getValueAtDate(date, array):
     return_list = []
@@ -68,7 +69,7 @@ def getAtm(atm_name):
     return atm
 
 
-def BSRN2IWV(datestr,station,tag,atm_name):
+def BSRN2IWV(datestr,station,tag,station_height,atm_name):
     line_counter = 0
 
     aeronet = get_iwv_from_aeronet(aeronetPath=aeronetPath, station=station)
@@ -97,8 +98,6 @@ def BSRN2IWV(datestr,station,tag,atm_name):
 
     result_path = "results/"+station+"/"+atm_name+"/"
 
-    if not os.path.isdir(result_path):
-        os.makedirs(result_path)
     write_file = result_path + station + datestr[0:6] + ".csv"
     with open(write_file,"w") as f:
         f.write("#Calculated and measured integrated watervapor for %s.\n" %station)
@@ -127,7 +126,7 @@ def BSRN2IWV(datestr,station,tag,atm_name):
             IWV['date'] = dates
             IWV["T"] = array['T']
             IWV["LW"] = array['LW']
-            IWV["IWV"] = array["iwv"]
+            IWV["IWV"] = array["iwv"] * height_correction(station_height)
             IWV["distance"] = array["distance"]
             IWV["IWV_AERONET"] =good_date[1] * 10
 
@@ -153,12 +152,38 @@ def BSRN2IWV(datestr,station,tag,atm_name):
         print("No valid Data written for this month")
     print("----------------------------------------------------")
 
-def startIWV(y_in,station,tag,atm):
+def height_correction(height):
+    """
+
+    :param height: height in meters
+    :return: correction for IWV
+
+    Assuming that most watervapor is located in the lower 2km a correction has to be made for the station-height.
+    If the station-height ist 1km for example this needs to be taken into account when calculating the IWV for the
+    colmn of air above it.
+
+    Assumption: 97% of all the wator vapor is in the lower 2km
+    """
+    ASSUMTPION = 0.97
+
+    if height <= 0:
+        return 1
+
+    elif height < 2000:
+        correction = height/2000 * ASSUMTPION #linear height correction
+        return correction
+
+    else:
+        return (1-ASSUMTPION)
+
+
+
+def startIWV(y_in,station,tag,height,atm):
     year_str = str(y_in)
     for m in range(0, 12, 1):
         datestr = year_str + str(m + 1).zfill(2)
         print(datestr)
-        BSRN2IWV(datestr=datestr, station=station, tag=tag, atm_name=atm)
+        BSRN2IWV(datestr=datestr, station=station, tag=tag, station_height=height, atm_name=atm)
 
 
 if __name__ == "__main__":
@@ -191,15 +216,27 @@ if __name__ == "__main__":
     # station = "Gobabeb"
     # tag = "gob"
 
-    station = "Sao_Martinho_SONDA"
-    tag = "sms"
+    # station = "Sao_Martinho_SONDA"
+    # tag = "sms"
 
-    stations = ["Barrow","SEDE_BOKER","Cart_Site","Cabauw","Gobabeb"]
-    tags = ["bar", "sbo","e13","cab","gob"]
+    stations = ["Barrow","SEDE_BOKER","Cart_Site","Cabauw","Gobabeb","Fukuoka","Tiksi","Toravere","Darwin"]
+    tags = ["bar", "sbo","e13","cab","gob","fua","tik","tor","dar"]
+    heights = [8,500,318,0,407,3,48,70,30]
 
-    for station, tag in zip(stations,tags):
+    RERUN = False #set TRUE if you want to delete old results and rerun everything. Else just new stations will be calculated
+
+    for station, tag, height in zip(stations,tags,heights):
         for atm in atms:
-            Parallel(n_jobs=-1,verbose=5)(delayed(startIWV)(y,station,tag,atm) for y in range(2000,2017,1))
+            result_path = "results/"+station+"/"+atm+"/"
+            if RERUN:
+                shutil.rmtree(result_path) # delete old results first
+            else:
+                if os.path.isdir(result_path):
+                    continue
+                else:
+                    os.makedirs(result_path)
+
+            Parallel(n_jobs=-1,verbose=5)(delayed(startIWV)(y,station,tag,height,atm) for y in range(2000,2017,1))
 
 
 

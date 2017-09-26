@@ -18,6 +18,29 @@ except:
 from wv_converter import VMR2RH, RH2VMR
 from joblib import Parallel,delayed
 
+# def get_sadata_atmosphere(season):
+#     columns = ['t', 'z', 'H2O', 'CO2', 'O3', 'N2O', 'CO', 'CH4']
+#     # columns = ['z','p','t','RHO','']
+#     atmosphere = {}
+#
+#     startline = {
+#         "tropical": 7,
+#         'midlatitude-summer': 87,
+#         'midlatitude-winter': 167,
+#         'subarctic-summer': 247,
+#         'subarctic-winter': 327,
+#         "US-standard" : 407,
+#         "subtropic-summer": 487,
+#         "subtropic-winter": 567
+#     }
+#
+#     with open("sadata.d","r") as f:
+#         file = np.genfromtxt(f,
+#             skip_header=startline[season] -1,
+#             skip_footer = 641 - (startline[season] + 73),
+#             names=columns
+#         )
+
 def get_fascod_atmosphere(fascod_path, season):
     """Returns the temperature profile and mixing ratio profiles for H2O, O3,
     N2O, CO, CH4 from a standard sounding or any other giving sounding.

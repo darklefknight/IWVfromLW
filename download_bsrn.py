@@ -36,45 +36,50 @@ def download_bsrn(station_tag,datestr):
     ftp.quit()
 
     counter = 0
-    with gzip.open("tmp/"+ filename, "rb") as f:
-        #skip header:
-        old_line = " "
-        line = f.readline().decode()
-        while ((not "*C0100" in line) and (not "*U0100" in line)):
+    try:
+        with gzip.open("tmp/"+ filename, "rb") as f:
+            #skip header:
+            old_line = " "
             line = f.readline().decode()
-            if line == old_line:
-                counter += 1
-                if counter == 1000:
-                    print("No data in file %s" %filename)
-                    return None
+            while ((not "*C0100" in line) and (not "*U0100" in line)):
+                line = f.readline().decode()
+                if line == old_line:
+                    counter += 1
+                    if counter == 1000:
+                        print("No data in file %s" %filename)
+                        return None
 
-            old_line = line
+                old_line = line
 
 
-        #get data:
-        for i in range(1440*days_in_month):
-            line1 = f.readline().decode().split()
-            line2 = f.readline().decode().split()
+            #get data:
+            for i in range(1440*days_in_month):
+                line1 = f.readline().decode().split()
+                line2 = f.readline().decode().split()
 
-            #get the date:
-            day = int(line1[0])
-            minute_running = int(line1[1])
-            hour = int(np.divide(minute_running,60))
-            minute = np.mod(minute_running,60)
-            line_date = dt(year,month,day,hour,minute)
-            dates.append(line_date)
+                #get the date:
+                day = int(line1[0])
+                minute_running = int(line1[1])
+                hour = int(np.divide(minute_running,60))
+                minute = np.mod(minute_running,60)
+                line_date = dt(year,month,day,hour,minute)
+                dates.append(line_date)
 
-            #get the data:
-            line_lw = float(line2[4])
-            lw.append(line_lw)
+                #get the data:
+                line_lw = float(line2[4])
+                lw.append(line_lw)
 
-            line_temp = float(line2[8])
-            temp.append(line_temp)
+                line_temp = float(line2[8])
+                temp.append(line_temp)
 
-    os.remove("tmp/" + filename)
+        os.remove("tmp/" + filename)
 
-    dates = np.asarray(dates)
-    lw = np.asarray(lw)
-    temp = np.asarray(temp)
-    array = np.stack((dates,temp,lw),axis=1)
-    return array
+        dates = np.asarray(dates)
+        lw = np.asarray(lw)
+        temp = np.asarray(temp)
+        array = np.stack((dates,temp,lw),axis=1)
+        return array
+
+    except:
+        print("Error while trying to extract %s" %filename)
+        return None

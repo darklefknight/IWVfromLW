@@ -87,12 +87,11 @@ if __name__ == "__main__":
     # station = "Cart_Site"
     # station = "Gobabeb"
 
-    stations = ["Barrow", "SEDE_BOKER"]#, "Cart_Site", "Cabauw", "Gobabeb"]
+    stations = ["Barrow", "SEDE_BOKER", "Cart_Site", "Cabauw", "Gobabeb"]
 
     for station in stations:
         for atm in atms:
             IWV = get_results(station,atm)
-
 
             fig = plt.figure(figsize=(16,9))
             fig.suptitle("Results for " + station + "\nUsed atmosphere: " + atm)
@@ -107,7 +106,7 @@ if __name__ == "__main__":
 
             ax2 = plt.subplot(212)
             ax2.plot(IWV['date'],np.subtract(IWV['IWV'],IWV['IWV_AERONET']),color="#347B98",lw=1, label="Difference")
-            ax2.set_ylim([-5,20])
+            ax2.set_ylim([-15,15])
             ax2.grid()
             ax2.set_xlabel("Time")
             ax2.set_ylabel("Difference between calculated and measured IWV [kg/m2]")
@@ -119,6 +118,7 @@ if __name__ == "__main__":
             ax2.legend(loc="upper left")
 
             plt.savefig("figures/" + station+"_" + atm+".png")
+            plt.close(fig)
 
 
 
