@@ -24,18 +24,19 @@ def download_bsrn(station_tag,datestr,verbose=4):
     lw = []
     temp = []
 
-    # download data from ftp-server:
-    ftp = ftplib.FTP("ftp.bsrn.awi.de")
-    ftp.login("bsrnftp", "bsrn1")
-    ftp.cwd(path)
-    if filename in ftp.nlst():
-        ftp.retrbinary("RETR " + filename, open("tmp/"+filename, 'wb').write)
-    else:
-        if verbose >= 4:
-            print("File %s does not exist on ftp.bsrn.awi.de"%filename)
-        return None
+    if not os.path.exists("tmp/"+filename):
+        # download data from ftp-server:
+        ftp = ftplib.FTP("ftp.bsrn.awi.de")
+        ftp.login("bsrnftp", "bsrn1")
+        ftp.cwd(path)
+        if filename in ftp.nlst():
+            ftp.retrbinary("RETR " + filename, open("tmp/"+filename, 'wb').write)
+        else:
+            if verbose >= 4:
+                print("File %s does not exist on ftp.bsrn.awi.de"%filename)
+            return None
 
-    ftp.quit()
+        ftp.quit()
 
     counter = 0
     try:
@@ -75,7 +76,7 @@ def download_bsrn(station_tag,datestr,verbose=4):
                 line_temp = float(line2[8])
                 temp.append(line_temp)
 
-        os.remove("tmp/" + filename)
+        # os.remove("tmp/" + filename)
 
         dates = np.asarray(dates)
         lw = np.asarray(lw)

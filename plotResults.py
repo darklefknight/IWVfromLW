@@ -90,7 +90,7 @@ if __name__ == "__main__":
 
     stations = ["Barrow", "SEDE_BOKER", "Cart_Site", "Cabauw", "Gobabeb", "Tiksi", "Toravere", "Darwin", "Fukuoka"]
 
-    stations = ["Barrow"]
+    stations = ["Cart_Site"]
     for station in stations:
         for atm in atms:
             IWV = get_results(station,atm)

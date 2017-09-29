@@ -79,7 +79,7 @@ def getAtm(atm_name):
 def BSRN2IWV(datestr,station,tag,station_height,atm_name,verbose):
     line_counter = 0
 
-    aeronet = get_iwv_from_aeronet(aeronetPath=aeronetPath, station=station)
+    aeronet = get_iwv_from_aeronet(aeronetPath=aeronetPath, station=station,verbose=verbose)
     aeronet_at_date = getIWVAtDate(datestr,aeronet)
     # aeronet_good_dates = searchGoodDate(aeronet_at_date)
     aeronet_good_dates = aeronet_at_date
@@ -247,7 +247,7 @@ if __name__ == "__main__":
     heights = [8,500,318,0,407,48,70,30,3]
 
     RERUN = True #set TRUE if you want to delete old results and rerun everything. Else just new stations will be calculated
-    verbose = 1 #between 0 and 3
+    verbose = 1 #between 0 and 4
 
     speed_up = 17 # 1 and 4
 

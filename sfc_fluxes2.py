@@ -18,28 +18,46 @@ except:
 from wv_converter import VMR2RH, RH2VMR
 from joblib import Parallel,delayed
 
-# def get_sadata_atmosphere(season):
-#     columns = ['t', 'z', 'H2O', 'CO2', 'O3', 'N2O', 'CO', 'CH4']
-#     # columns = ['z','p','t','RHO','']
-#     atmosphere = {}
-#
-#     startline = {
-#         "tropical": 7,
-#         'midlatitude-summer': 87,
-#         'midlatitude-winter': 167,
-#         'subarctic-summer': 247,
-#         'subarctic-winter': 327,
-#         "US-standard" : 407,
-#         "subtropic-summer": 487,
-#         "subtropic-winter": 567
-#     }
-#
-#     with open("sadata.d","r") as f:
-#         file = np.genfromtxt(f,
-#             skip_header=startline[season] -1,
-#             skip_footer = 641 - (startline[season] + 73),
-#             names=columns
-#         )
+def get_sadata_atmosphere(season):
+    columns = ['z','p','t','RHO','H2O','O3','N2O','CO','CH4'] # without CO2
+    atmosphere = {}
+
+    startline = {
+        "tropical": 7,
+        'midlatitude-summer': 87,
+        'midlatitude-winter': 167,
+        'subarctic-summer': 247,
+        'subarctic-winter': 327,
+        "US-standard" : 407,
+        "subtropic-summer": 487,
+        "subtropic-winter": 567
+    }
+
+    with open("sadata.d","rb") as f:
+        file = np.genfromtxt(f,
+            skip_header=startline[season] -1,
+            skip_footer = 641 - (startline[season] + 73),
+            names=columns
+        )
+
+    for name in columns:
+        atmosphere[name] = file[name]
+
+    if season == "US-standard":
+        fas_atm = get_fascod_atmosphere("/scratch/uni/u237/users/tlang/arts-xml-data/planets/Earth/Fascod/",
+                                        season='midlatitude-summer')
+    elif season == "subtropic-summer":
+        fas_atm = get_fascod_atmosphere("/scratch/uni/u237/users/tlang/arts-xml-data/planets/Earth/Fascod/",
+                                        season='midlatitude-summer')
+    elif season == "subtropic-winter":
+        fas_atm = get_fascod_atmosphere("/scratch/uni/u237/users/tlang/arts-xml-data/planets/Earth/Fascod/",
+                                        season='midlatitude-winter')
+    else:
+        fas_atm = get_fascod_atmosphere("/scratch/uni/u237/users/tlang/arts-xml-data/planets/Earth/Fascod/",
+                                        season=season)
+    atmosphere['CO2'] = fas_atm['CO2']
+
+    return atmosphere
 
 def get_fascod_atmosphere(fascod_path, season):
     """Returns the temperature profile and mixing ratio profiles for H2O, O3,
@@ -180,14 +198,16 @@ def start_calculations(fascod_atm_raw,temp, h2o_low,h2o_high,h2o_step, LIMIT_HEI
 
 if __name__ == '__main__':
     write_file = '/scratch/uni/u237/users/tmachnitzki/psrad/python_svn/wv_tables/'
-    atm_names =  sorted((os.listdir('/scratch/uni/u237/users/tlang/arts-xml-data/planets/Earth/Fascod') ))
-    del atm_names[atm_names.index('README')]
+    # atm_names =  sorted((os.listdir('/scratch/uni/u237/users/tlang/arts-xml-data/planets/Earth/Fascod') ))
+    # del atm_names[atm_names.index('README')]
+
+    atm_names= ['US-standard','subtropic-winter','subtropic-summer','midlatitude-summer', 'midlatitude-winter', 'subarctic-summer', 'subarctic-winter', 'tropical']
     
-    LIMIT_HEIGHT = True  #if True: iwv just up to 10 Km. Else up to 95 Km
+    LIMIT_HEIGHT = True  #if True: iwv just up to 12 Km. Else up to 95 Km
     Rw = tp.atmosphere.constants.gas_constant_water_vapor #Gaskonstante von Wasserdampf
 
-    t_low =  -30  #Darf nicht größer 0 sein
-    t_high = 30    
+    t_low =  -50  #Darf nicht größer 0 sein
+    t_high = 60
     t_step = 0.1
     
     h2o_low = 0
@@ -198,12 +218,16 @@ if __name__ == '__main__':
     # atm_names = ['midlatitude-summer']  #<-- Das hier auskommentieren um alle Atmosphären zu berechnen
 
     for fas_atm in atm_names:   #iterating over all fascod-atmospheres
-        fascod_atm_raw = get_fascod_atmosphere("/scratch/uni/u237/users/tlang/arts-xml-data/planets/Earth/Fascod/",season=fas_atm)
+
+        # fascod_atm_raw = get_fascod_atmosphere("/scratch/uni/u237/users/tlang/arts-xml-data/planets/Earth/Fascod/",season=fas_atm)
+        # for key in fascod_atm_raw.keys():
+        #     fascod_atm_raw[key] = fascod_atm_raw[key][1:] #removing the 1st value of each atmosphere
+
+        fascod_atm_raw = get_sadata_atmosphere(season=fas_atm)
         print('Now calculating: ',fas_atm)
         temp_counter = 0
 
-        for key in fascod_atm_raw.keys():
-            fascod_atm_raw[key] = fascod_atm_raw[key][1:] #removing the 1st value of each atmosphere
+
 
         fascod_RH = VMR2RH(fascod_atm_raw['H2O'],fascod_atm_raw['p'],fascod_atm_raw['t'])
 
@@ -217,7 +241,7 @@ if __name__ == '__main__':
 
         result_string = result_string_head + sum(elements_cl,[])
 
-        with open(write_file+fas_atm+"_dependent.csv","w") as f:
+        with open(write_file+fas_atm+"_dependent_sadata.csv","w") as f:
             for line in result_string:
                 f.write(line + "\n")
 
