@@ -14,6 +14,8 @@ import locale
 
 locale.setlocale(locale.LC_ALL, 'de_DE')
 
+
+
 def getValueAtDate(date, array):
     return_list = []
     for line in array:
@@ -72,8 +74,9 @@ def getAtm(atm_name):
                             )
     return atm
 
+
 @lru_cache(maxsize=256)
-def BSRN2IWV(datestr,station,tag,station_height,atm_name):
+def BSRN2IWV(datestr,station,tag,station_height,atm_name,verbose):
     line_counter = 0
 
     aeronet = get_iwv_from_aeronet(aeronetPath=aeronetPath, station=station)
@@ -81,19 +84,22 @@ def BSRN2IWV(datestr,station,tag,station_height,atm_name):
     # aeronet_good_dates = searchGoodDate(aeronet_at_date)
     aeronet_good_dates = aeronet_at_date
     if len(aeronet_good_dates) == 0:
-        print("No good dates found in AERONET for this month.")
-        print("--------------------------------------------------")
+        if verbose >= 3:
+            print("No good dates found in AERONET for this month.")
+            print("--------------------------------------------------")
         return None
 
     BSRN_FILE_NAME = tag + "_radiation_" + datestr[:4] + "-" + datestr[4:6] + ".tab"
     FILE = BSRN_FILE_PATH + station + "/" + BSRN_FILE_NAME
 
-    print(station + ", " + tag + ", " + atm_name + ", " + datestr)
+    if verbose >= 2:
+        print(station + ", " + tag + ", " + atm_name + ", " + datestr)
 
-    bsrn_raw = download_bsrn(tag,datestr)
+    bsrn_raw = download_bsrn(tag,datestr,verbose)
     if bsrn_raw == None:
-        print("No data in BSRN to continue")
-        print("--------------------------------------------------")
+        if verbose >= 3:
+            print("No data in BSRN to continue")
+            print("--------------------------------------------------")
         return None
 
     atm = getAtm(atm_name)  # reads the _dependent.csv file
@@ -130,12 +136,14 @@ def BSRN2IWV(datestr,station,tag,station_height,atm_name):
             IWV['date'] = dates
             IWV["T"] = array['T']
             IWV["LW"] = array['LW']
-            IWV["IWV"] = np.multiply(array["iwv"],height_correction(station_height))
+            # IWV["IWV"] = np.multiply(array["iwv"],height_correction(station_height))
+            IWV["IWV"] = array["iwv"]
             IWV["distance"] = array["distance"]
             IWV["IWV_AERONET"] =good_date[1] * 10
 
             if len(IWV['IWV']) == 0:
-                print('weird mistake.')
+                if verbose >= 1:
+                    print('weird mistake.')
                 continue
 
             if IWV['IWV'][0] != -777:
@@ -153,8 +161,10 @@ def BSRN2IWV(datestr,station,tag,station_height,atm_name):
 
     if line_counter == 0:
         os.remove(write_file)
-        print("No valid Data written for this month")
-    print("----------------------------------------------------")
+        if verbose >= 3:
+            print("No valid Data written for this month")
+    if verbose >= 2:
+        print("----------------------------------------------------")
 
 def height_correction(height):
     """
@@ -182,12 +192,21 @@ def height_correction(height):
 
 
 
-def startIWV(y_in,station,tag,height,atm):
-    year_str = str(y_in)
-    for m in range(0, 12, 1):
-        datestr = year_str + str(m + 1).zfill(2)
+def startIWV(y_in,m_in,station,tag,height,atm,skip,verbose):
+
+    if m_in<12:
+        year_str = str(y_in)
+        datestr = year_str + str(m_in + 1).zfill(2)
+
+    else:
+        year_str = str(y_in + int(np.mod(m_in,skip)))
+        datestr = year_str + str(np.mod(m_in ,12) +1 ).zfill(2)
+
+    if verbose >= 2:
         print(datestr)
-        BSRN2IWV(datestr=datestr, station=station, tag=tag, station_height=height, atm_name=atm)
+
+    BSRN2IWV(datestr=datestr, station=station, tag=tag, station_height=height, atm_name=atm,verbose=verbose)
+
 
 
 if __name__ == "__main__":
@@ -228,6 +247,9 @@ if __name__ == "__main__":
     heights = [8,500,318,0,407,48,70,30,3]
 
     RERUN = True #set TRUE if you want to delete old results and rerun everything. Else just new stations will be calculated
+    verbose = 1 #between 0 and 3
+
+    speed_up = 4 # 1 and 4
 
     for station, tag, height in zip(stations,tags,heights):
         for atm in atms:
@@ -243,8 +265,10 @@ if __name__ == "__main__":
                     continue
                 else:
                     os.makedirs(result_path)
-
-            Parallel(n_jobs=-1,verbose=5)(delayed(startIWV)(y,station,tag,height,atm) for y in range(2000,2017,1))
+            if verbose >=1:
+                print(station, atm)
+            for y in range(2000,2017,speed_up):
+                Parallel(n_jobs=-1,verbose=5)(delayed(startIWV)(y,m,station,tag,height,atm,speed_up,verbose) for m in range(0,12*speed_up,1))
 
 
 

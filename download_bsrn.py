@@ -5,7 +5,7 @@ import numpy as np
 from datetime import datetime as dt
 import calendar
 
-def download_bsrn(station_tag,datestr):
+def download_bsrn(station_tag,datestr,verbose=4):
     path = station_tag
     year_str = datestr[:4]
     month_str = datestr[4:6]
@@ -13,7 +13,8 @@ def download_bsrn(station_tag,datestr):
     MMYY = month_str + year_str[2:]
     filename = station_tag + MMYY + ".dat.gz"
 
-    print(filename)
+    if verbose >= 4:
+        print(filename)
 
     month = int(month_str)
     year = int(year_str)
@@ -30,7 +31,8 @@ def download_bsrn(station_tag,datestr):
     if filename in ftp.nlst():
         ftp.retrbinary("RETR " + filename, open("tmp/"+filename, 'wb').write)
     else:
-        print("File %s does not exist on ftp.bsrn.awi.de"%filename)
+        if verbose >= 4:
+            print("File %s does not exist on ftp.bsrn.awi.de"%filename)
         return None
 
     ftp.quit()
@@ -46,7 +48,8 @@ def download_bsrn(station_tag,datestr):
                 if line == old_line:
                     counter += 1
                     if counter == 1000:
-                        print("No data in file %s" %filename)
+                        if verbose >= 4:
+                            print("No data in file %s" %filename)
                         return None
 
                 old_line = line
@@ -81,5 +84,6 @@ def download_bsrn(station_tag,datestr):
         return array
 
     except:
-        print("Error while trying to extract %s" %filename)
+        if verbose >= 4:
+            print("Error while trying to extract %s" %filename)
         return None
