@@ -4,10 +4,11 @@ from datetime import datetime as dt
 import matplotlib.pyplot as plt
 
 
-def get_iwv_from_aeronet(aeronetPath, station):
+def get_iwv_from_aeronet(aeronetPath, station,verbose=4):
     # stationPath = glob.glob(aeronetPath + "*" + station + ".lev20")[0]
     stationPath = glob.glob(aeronetPath + "*" + station + ".dubovik")[0]
-    print(stationPath)
+    if verbose >= 4:
+        print(stationPath)
     with open(stationPath, "rb") as f:
         array = np.genfromtxt(f,
                               skip_header=3,

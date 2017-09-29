@@ -249,7 +249,7 @@ if __name__ == "__main__":
     RERUN = True #set TRUE if you want to delete old results and rerun everything. Else just new stations will be calculated
     verbose = 1 #between 0 and 3
 
-    speed_up = 4 # 1 and 4
+    speed_up = 17 # 1 and 4
 
     for station, tag, height in zip(stations,tags,heights):
         for atm in atms:
