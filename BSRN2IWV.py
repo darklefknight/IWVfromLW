@@ -9,6 +9,10 @@ from download_bsrn import download_bsrn
 import sys
 import os
 import shutil
+from functools import lru_cache
+import locale
+
+locale.setlocale(locale.LC_ALL, 'de_DE')
 
 def getValueAtDate(date, array):
     return_list = []
@@ -68,7 +72,7 @@ def getAtm(atm_name):
                             )
     return atm
 
-
+@lru_cache(maxsize=256)
 def BSRN2IWV(datestr,station,tag,station_height,atm_name):
     line_counter = 0
 
@@ -126,7 +130,7 @@ def BSRN2IWV(datestr,station,tag,station_height,atm_name):
             IWV['date'] = dates
             IWV["T"] = array['T']
             IWV["LW"] = array['LW']
-            IWV["IWV"] = array["iwv"] * height_correction(station_height)
+            IWV["IWV"] = np.multiply(array["iwv"],height_correction(station_height))
             IWV["distance"] = array["distance"]
             IWV["IWV_AERONET"] =good_date[1] * 10
 
@@ -170,7 +174,7 @@ def height_correction(height):
         return 1
 
     elif height < 2000:
-        correction = height/2000 * ASSUMTPION #linear height correction
+        correction = 1 - (height/2000 * ASSUMTPION) #linear height correction
         return correction
 
     else:
@@ -219,17 +223,21 @@ if __name__ == "__main__":
     # station = "Sao_Martinho_SONDA"
     # tag = "sms"
 
-    stations = ["Barrow","SEDE_BOKER","Cart_Site","Cabauw","Gobabeb","Fukuoka","Tiksi","Toravere","Darwin"]
-    tags = ["bar", "sbo","e13","cab","gob","fua","tik","tor","dar"]
-    heights = [8,500,318,0,407,3,48,70,30]
+    stations = ["Barrow","SEDE_BOKER","Cart_Site","Cabauw","Gobabeb","Tiksi","Toravere","Darwin","Fukuoka"]
+    tags = ["bar", "sbo","e13","cab","gob","tik","tor","dar","fua"]
+    heights = [8,500,318,0,407,48,70,30,3]
 
-    RERUN = False #set TRUE if you want to delete old results and rerun everything. Else just new stations will be calculated
+    RERUN = True #set TRUE if you want to delete old results and rerun everything. Else just new stations will be calculated
 
     for station, tag, height in zip(stations,tags,heights):
         for atm in atms:
             result_path = "results/"+station+"/"+atm+"/"
             if RERUN:
-                shutil.rmtree(result_path) # delete old results first
+                if os.path.isdir(result_path):
+                    shutil.rmtree(result_path) # delete old results first
+                    os.makedirs(result_path)
+                else:
+                    os.makedirs(result_path)
             else:
                 if os.path.isdir(result_path):
                     continue

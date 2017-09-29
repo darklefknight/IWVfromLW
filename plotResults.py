@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from glob import glob
 from datetime import datetime as dt
+import locale
+locale.setlocale(locale.LC_ALL,'de_DE')
 
 
 def get_results(station,atm):
@@ -72,7 +74,6 @@ def get_results(station,atm):
 
     return IWV
 
-
 if __name__ == "__main__":
     atms = ['midlatitude-summer', 'midlatitude-winter', 'subarctic-summer', 'subarctic-winter', 'tropical']
     # atm = "tropical"
@@ -87,8 +88,9 @@ if __name__ == "__main__":
     # station = "Cart_Site"
     # station = "Gobabeb"
 
-    stations = ["Barrow", "SEDE_BOKER", "Cart_Site", "Cabauw", "Gobabeb"]
+    stations = ["Barrow", "SEDE_BOKER", "Cart_Site", "Cabauw", "Gobabeb", "Tiksi", "Toravere", "Darwin", "Fukuoka"]
 
+    stations = ["Barrow"]
     for station in stations:
         for atm in atms:
             IWV = get_results(station,atm)
