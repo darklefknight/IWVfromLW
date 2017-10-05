@@ -98,7 +98,7 @@ def BSRN2IWV(datestr,station,tag,station_height,atm_name,verbose):
         print(station + ", " + tag + ", " + atm_name + ", " + datestr)
 
     bsrn_raw = download_bsrn(tag,datestr,verbose)
-    if bsrn_raw == None:
+    if np.all(bsrn_raw) == None:
         if verbose >= 3:
             print("No data in BSRN to continue")
             print("--------------------------------------------------")
@@ -139,8 +139,8 @@ def BSRN2IWV(datestr,station,tag,station_height,atm_name,verbose):
             IWV['date'] = dates
             IWV["T"] = array['T']
             IWV["LW"] = array['LW']
-            # IWV["IWV"] = np.multiply(array["iwv"],height_correction(station_height))
-            IWV["IWV"] = array["iwv"]
+            IWV["IWV"] = np.multiply(array["iwv"],height_correction(station_height))
+            # IWV["IWV"] = array["iwv"]
             IWV["distance"] = array["distance"]
             IWV["IWV_AERONET"] =good_date[1] * 10
 
@@ -149,7 +149,7 @@ def BSRN2IWV(datestr,station,tag,station_height,atm_name,verbose):
                     print('weird mistake.')
                 continue
 
-            if IWV['IWV'][0] != -777:
+            if IWV['IWV'][0] > -20:
                 if 0 < IWV['date'][0].hour <24:
                     line_counter += 1
                     f.write(
@@ -251,10 +251,10 @@ if __name__ == "__main__":
     tags = ["bar", "sbo","e13","cab","gob","tik","tor","dar","fua"]
     heights = [8,500,318,0,407,48,70,30,3]
 
-    stations = ["Cart_Site"]
-    tags = ["e13"]
-    heigts = [318]
-    atms = ["midlatitude-winter"]
+    # stations = ["Cart_Site"]
+    # tags = ["e13"]
+    # heigts = [318]
+    # atms = ['subtropic-winter']
 
     RERUN = True #set TRUE if you want to delete old results and rerun everything. Else just new stations will be calculated
     verbose = 1 #between 0 and 4
@@ -282,6 +282,4 @@ if __name__ == "__main__":
                 Parallel(n_jobs=-1,verbose=5)(delayed(startIWV)(y,m,station,tag,height,atm,speed_up,verbose) for m in range(0,12*speed_up,1))
 
 
-
-
-
+    # TODO: interpolate between winter and summer atmosphere depending on season?

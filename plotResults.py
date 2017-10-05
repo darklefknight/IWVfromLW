@@ -93,7 +93,7 @@ if __name__ == "__main__":
     stations = ["Barrow","SEDE_BOKER","Cart_Site","Cabauw","Gobabeb","Tiksi","Toravere","Darwin","Fukuoka"]
 
     stations = ["Cart_Site"]
-    atms = ["midlatitude-winter"]
+    atms = ["subtropic-winter","US-standard"]
 
     for station in stations:
         for atm in atms:
@@ -108,11 +108,11 @@ if __name__ == "__main__":
             ax1.grid()
             ax1.set_xlabel("Time")
             ax1.set_ylabel("IWV [kg/m2]")
-            ax1.set_ylim([0,60])
+            # ax1.set_ylim([0,60])
 
             ax2 = plt.subplot(212)
             ax2.plot(IWV['date'],np.subtract(IWV['IWV'],IWV['IWV_AERONET']),color="#347B98",lw=1, label="Difference")
-            ax2.set_ylim([-15,15])
+            # ax2.set_ylim([-15,15])
             ax2.grid()
             ax2.set_xlabel("Time")
             ax2.set_ylabel("Difference between calculated and measured IWV [kg/m2]")
