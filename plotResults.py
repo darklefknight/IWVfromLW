@@ -7,7 +7,7 @@ locale.setlocale(locale.LC_ALL,'de_DE')
 
 
 def get_results(station,atm):
-    result_path = "results/" + station + "/" + atm + "/"
+    result_path = "results/" + station + "_sadata/" + atm + "/"
     IWV = {}
     IWV['date'] = []
     IWV["T"] = []
@@ -75,7 +75,9 @@ def get_results(station,atm):
     return IWV
 
 if __name__ == "__main__":
-    atms = ['midlatitude-summer', 'midlatitude-winter', 'subarctic-summer', 'subarctic-winter', 'tropical']
+    # atms = ['midlatitude-summer', 'midlatitude-winter', 'subarctic-summer', 'subarctic-winter', 'tropical']
+    atms= ['US-standard','subtropic-winter','subtropic-summer','midlatitude-summer', 'midlatitude-winter', 'subarctic-summer', 'subarctic-winter', 'tropical']
+
     # atm = "tropical"
     # atm= "midlatitude-summer"
     # atm = "midlatitude-winter"
@@ -88,9 +90,11 @@ if __name__ == "__main__":
     # station = "Cart_Site"
     # station = "Gobabeb"
 
-    stations = ["Barrow", "SEDE_BOKER", "Cart_Site", "Cabauw", "Gobabeb", "Tiksi", "Toravere", "Darwin", "Fukuoka"]
+    stations = ["Barrow","SEDE_BOKER","Cart_Site","Cabauw","Gobabeb","Tiksi","Toravere","Darwin","Fukuoka"]
 
     stations = ["Cart_Site"]
+    atms = ["midlatitude-winter"]
+
     for station in stations:
         for atm in atms:
             IWV = get_results(station,atm)

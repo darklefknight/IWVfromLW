@@ -19,6 +19,7 @@ from wv_converter import VMR2RH, RH2VMR
 from joblib import Parallel,delayed
 
 def get_sadata_atmosphere(season):
+    sadata_file = "/scratch/uni/u237/users/tmachnitzki/psrad/python_svn/sadata.d"
     columns = ['z','p','t','RHO','H2O','O3','N2O','CO','CH4'] # without CO2
     atmosphere = {}
 
@@ -33,7 +34,7 @@ def get_sadata_atmosphere(season):
         "subtropic-winter": 567
     }
 
-    with open("sadata.d","rb") as f:
+    with open(sadata_file,"rb") as f:
         file = np.genfromtxt(f,
             skip_header=startline[season] -1,
             skip_footer = 641 - (startline[season] + 73),
@@ -56,6 +57,15 @@ def get_sadata_atmosphere(season):
         fas_atm = get_fascod_atmosphere("/scratch/uni/u237/users/tlang/arts-xml-data/planets/Earth/Fascod/",
                                         season=season)
     atmosphere['CO2'] = fas_atm['CO2']
+
+    # corrections:
+    atmosphere["z"] *= 1000 #km -> m
+    atmosphere["p"] *= 100 #hpa -> pa
+    atmosphere["H2O"] *= 1e-6 #_->ppmv
+    atmosphere["O3"] *= 1e-6 #_->ppmv
+    atmosphere["N2O"] *= 1e-6  # _->ppmv
+    atmosphere["CO"] *= 1e-6  # _->ppmv
+    atmosphere["CH4"] *= 1e-6  # _->ppmv
 
     return atmosphere
 

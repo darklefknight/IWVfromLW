@@ -64,7 +64,9 @@ def getIWVFromTable(date, temp, flx, atm_name, atm):
 def getAtm(atm_name):
     # PATH = "/Users/u300844/t7home/tmachnitzki/psrad/python_svn/wv_tables/"
     PATH = "/scratch/uni/u237/users/tmachnitzki/psrad/python_svn/wv_tables/"
-    FILE = atm_name + "_dependent.csv"
+    # FILE = atm_name + "_dependent.csv"
+    FILE = atm_name + "_dependent_sadata.csv"
+
 
     with open(PATH + FILE, "rb") as f:
         atm = np.genfromtxt(f,
@@ -106,7 +108,8 @@ def BSRN2IWV(datestr,station,tag,station_height,atm_name,verbose):
 
     #prepare File for writing out data:
 
-    result_path = "results/"+station+"/"+atm_name+"/"
+    result_path = "results/"+station+"_sadata/"+atm_name+"/"
+    # result_path = "results/" + station + "/" + atm_name + "/"
 
     write_file = result_path + station + datestr[0:6] + ".csv"
     with open(write_file,"w") as f:
@@ -218,7 +221,8 @@ if __name__ == "__main__":
     BSRN_FILE_PATH = "/scratch/uni/u237/users/tmachnitzki/psrad/BSRN/"
     aeronetPath = "/scratch/uni/u237/users/tmachnitzki/psrad/aeronet_inversion/INV/DUBOV/ALL_POINTS/"
 
-    atms = ['midlatitude-summer', 'midlatitude-winter', 'subarctic-summer', 'subarctic-winter', 'tropical']
+    atms= ['US-standard','subtropic-winter','subtropic-summer','midlatitude-summer', 'midlatitude-winter', 'subarctic-summer', 'subarctic-winter', 'tropical']
+
 
 
     # station = "Barrow"
@@ -243,8 +247,14 @@ if __name__ == "__main__":
     # tag = "sms"
 
     stations = ["Barrow","SEDE_BOKER","Cart_Site","Cabauw","Gobabeb","Tiksi","Toravere","Darwin","Fukuoka"]
+
     tags = ["bar", "sbo","e13","cab","gob","tik","tor","dar","fua"]
     heights = [8,500,318,0,407,48,70,30,3]
+
+    stations = ["Cart_Site"]
+    tags = ["e13"]
+    heigts = [318]
+    atms = ["midlatitude-winter"]
 
     RERUN = True #set TRUE if you want to delete old results and rerun everything. Else just new stations will be calculated
     verbose = 1 #between 0 and 4
@@ -253,7 +263,8 @@ if __name__ == "__main__":
 
     for station, tag, height in zip(stations,tags,heights):
         for atm in atms:
-            result_path = "results/"+station+"/"+atm+"/"
+            result_path = "results/" + station + "_sadata/" + atm + "/"
+            # result_path = "results/" + station + "/" + atm + "/"
             if RERUN:
                 if os.path.isdir(result_path):
                     shutil.rmtree(result_path) # delete old results first
