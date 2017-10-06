@@ -17,7 +17,7 @@ def get_results(station,atm):
     IWV["IWV_AERONET"] = []
 
     for file in sorted(glob(result_path + "*" + station + "*")):
-        print(file)
+        # print(file)
         with open(file, "rb") as f:
             results = np.genfromtxt(f,
                                     skip_header=4,
@@ -26,7 +26,7 @@ def get_results(station,atm):
                                     comments="#",
                                     dtype=None
                                     )
-        print(np.shape(results))
+        # print(np.shape(results))
         if np.shape(results) != ():
             for line in results:
                 # get date:
@@ -74,6 +74,39 @@ def get_results(station,atm):
 
     return IWV
 
+
+def makeHist(IWV):
+    try:
+        fig = plt.figure(figsize=(9,9))
+        fig.suptitle("Results for " + station + "\nUsed atmosphere: " + atm)
+        ax1 = plt.subplot(111)
+        ax1.plot(IWV['IWV'],IWV['IWV_AERONET'], lw=0, marker=".")
+
+        m, b = np.polyfit(IWV['IWV'],IWV['IWV_AERONET'], 1)
+        print(m,b)
+        x = IWV['IWV'][:].copy()
+        y = np.add(np.multiply(m,x),b)
+        ax1.plot(x, y, '-',label="m={} \nb={}".format(m,b))
+
+        x_line = np.linspace(0,60,61)
+
+        ax1.plot(x_line,x_line,color="black",lw=1)
+        ax1.grid()
+
+        ax1.set_xlabel("Calculated IWV")
+        ax1.set_ylabel("IWV from AERONET")
+
+        ax1.set_xlim([0, 50])
+        ax1.set_ylim([0, 50])
+        ax1.legend(loc="upper left")
+
+        plt.savefig("figures/hist/" + station + "_" + atm + "_hist.png")
+        plt.close(fig)
+
+    except:
+        plt.close(fig)
+
+
 if __name__ == "__main__":
     # atms = ['midlatitude-summer', 'midlatitude-winter', 'subarctic-summer', 'subarctic-winter', 'tropical']
     atms= ['US-standard','subtropic-winter','subtropic-summer','midlatitude-summer', 'midlatitude-winter', 'subarctic-summer', 'subarctic-winter', 'tropical']
@@ -92,11 +125,18 @@ if __name__ == "__main__":
 
     stations = ["Barrow","SEDE_BOKER","Cart_Site","Cabauw","Gobabeb","Tiksi","Toravere","Darwin","Fukuoka"]
 
-    stations = ["Cart_Site"]
-    atms = ["subtropic-winter","US-standard"]
+    # stations = ["Cart_Site"]
+    # atms = ["subtropic-winter","US-standard"]
 
+    correlation_file = "statistics/correlation.csv"
+    f = open(correlation_file,"w")
+    f.write(";")
+    f.write(";".join(atms))
+    f.write(";")
     for station in stations:
+        f.write("\n" + station + ";")
         for atm in atms:
+
             IWV = get_results(station,atm)
 
             fig = plt.figure(figsize=(16,9))
@@ -108,19 +148,19 @@ if __name__ == "__main__":
             ax1.grid()
             ax1.set_xlabel("Time")
             ax1.set_ylabel("IWV [kg/m2]")
-            # ax1.set_ylim([0,60])
+            ax1.set_ylim([0,60])
 
             ax2 = plt.subplot(212)
             ax2.plot(IWV['date'],np.subtract(IWV['IWV'],IWV['IWV_AERONET']),color="#347B98",lw=1, label="Difference")
-            # ax2.set_ylim([-15,15])
+            ax2.set_ylim([-20,20])
             ax2.grid()
             ax2.set_xlabel("Time")
             ax2.set_ylabel("Difference between calculated and measured IWV [kg/m2]")
 
-
             ax2mean = np.mean(np.subtract(IWV['IWV'],IWV['IWV_AERONET']))
             ax2.plot(IWV['date'],[ax2mean for i in range(len(IWV['date']))],ls="--", color="#347B98", label="Mean Difference = %f kg/m2" %ax2mean)
-
+            ax2.plot(IWV['date'], [ax2mean+5 for i in range(len(IWV['date']))], ls="--", color="g")
+            ax2.plot(IWV['date'], [ax2mean - 5 for i in range(len(IWV['date']))], ls="--", color="g")
             ax2.legend(loc="upper left")
 
             plt.savefig("figures/" + station+"_" + atm+".png")
@@ -128,4 +168,12 @@ if __name__ == "__main__":
 
 
 
+
+            correlation= np.corrcoef(IWV['IWV'],IWV['IWV_AERONET'])[0,1]
+            f.write("%f ;" % correlation)
+
+            makeHist(IWV)
+
+
+    f.close()
 
