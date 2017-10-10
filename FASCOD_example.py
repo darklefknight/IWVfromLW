@@ -7,11 +7,11 @@ if __name__ == "__main__":
     FASCOD_PATH = "/scratch/uni/u237/users/tlang/arts-xml-data/planets/Earth/Fascod/"
     home = "/scratch/uni/u237/users/tmachnitzki/psrad/python_svn/"
 
-    fascod_atm = get_sadata_atmosphere("tropical")
-    fascod_atm= get_fascod_atmosphere(FASCOD_PATH,"tropical")
+    fascod_atm = get_sadata_atmosphere("US-standard")
+    # fascod_atm= get_fascod_atmosphere(FASCOD_PATH,"tropical")
     results_lw,H2O, Tsfc = calc_hr(fascod_atm, 'lw')
 
-    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey=True, figsize=(9,9))
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey=True, figsize=(6,6))
     fig.suptitle("US standard")
     ax1.plot(fascod_atm['t'], fascod_atm['p'] * 1e-2)
     ax1.set_ylim(1013, 0.1)

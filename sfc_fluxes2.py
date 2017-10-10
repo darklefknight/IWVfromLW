@@ -19,10 +19,13 @@ from wv_converter import VMR2RH, RH2VMR
 from joblib import Parallel,delayed
 
 def get_sadata_atmosphere(season):
-    from getH2OforSADATA import getH2Ovalues
+    from getH2OforSADATA import getCO2values
     sadata_file = "/scratch/uni/u237/users/tmachnitzki/psrad/python_svn/sadata.d"
     columns = ['z','p','t','RHO','H2O','O3','N2O','CO','CH4'] # without CO2
     atmosphere = {}
+
+    for name in columns:
+        atmosphere[name] = []
 
     startline = {
         "tropical": 7,
@@ -36,32 +39,17 @@ def get_sadata_atmosphere(season):
     }
 
     with open(sadata_file,"rb") as f:
-        file = np.genfromtxt(f,
-            skip_header=startline[season] -1,
-            skip_footer = 641 - (startline[season] + 73),
-            names=columns
-        )
+        for i in range(startline[season]-1):
+            f.readline()
 
-    for name in columns:
-        atmosphere[name] = file[name]
+        for i in range(59):
+            line = f.readline().split()
+            for i,name in enumerate(columns):
+                atmosphere[name].append(float(line[i].decode()))
 
-    if season == "US-standard":
-        fas_atm = get_fascod_atmosphere("/scratch/uni/u237/users/tlang/arts-xml-data/planets/Earth/Fascod/",
-                                        season='midlatitude-summer')
-    elif season == "subtropic-summer":
-        fas_atm = get_fascod_atmosphere("/scratch/uni/u237/users/tlang/arts-xml-data/planets/Earth/Fascod/",
-                                        season='midlatitude-summer')
-    elif season == "subtropic-winter":
-        fas_atm = get_fascod_atmosphere("/scratch/uni/u237/users/tlang/arts-xml-data/planets/Earth/Fascod/",
-                                        season='midlatitude-winter')
-    else:
-        fas_atm = get_fascod_atmosphere("/scratch/uni/u237/users/tlang/arts-xml-data/planets/Earth/Fascod/",
-                                        season=season)
+    for key in atmosphere.keys():
+        atmosphere[key] = np.asarray(atmosphere[key])
 
-    atmosphere['CO2'] = fas_atm['CO2']
-    atmosphere['CO2'][:] = -777
-    for i in range(len(atmosphere['p'])):
-        atmosphere['CO2'][i] = fas_atm['CO2']
 
     # corrections:
     atmosphere["z"] *= 1000 #km -> m
@@ -74,9 +62,23 @@ def get_sadata_atmosphere(season):
 
     del atmosphere['RHO']
 
+    if np.logical_or(np.logical_or((season == "subtropic-summer"), (season == "subtropic-winter")),season == "US-standard"):
+        with open("/scratch/uni/u237/users/tmachnitzki/psrad/python_svn/midlatitude_winter_CO2.txt", "rb") as f:
+            CO2_file = np.genfromtxt(f,dtype=None)
+        atmosphere["CO2"] = CO2_file
+    else:
+        fas_atm = get_fascod_atmosphere("/scratch/uni/u237/users/tlang/arts-xml-data/planets/Earth/Fascod/",
+                                        season=season)
+        # print(atmosphere)
+        values = getCO2values(fas_atm, atmosphere)
+        atmosphere['CO2'] = np.asarray(values)
+
+    for key in atmosphere.keys():
+        atmosphere[key] = np.asarray(atmosphere[key])
+
     return atmosphere
 
-def get_fascod_atmosphere(fascod_path, season):
+def get_fascod_atmosphere(fascod_path, season,del0=True):
     """Returns the temperature profile and mixing ratio profiles for H2O, O3,
     N2O, CO, CH4 from a standard sounding or any other giving sounding.
     Instead of returning specific values, interpolated functions are returned.
@@ -99,8 +101,9 @@ def get_fascod_atmosphere(fascod_path, season):
 
     atmosphere['p'] = pres
 
-    for key in atmosphere.keys():
-        atmosphere[key] = atmosphere[key][1:] #removing the 1st value of each atmosphere
+    if del0:
+        for key in atmosphere.keys():
+            atmosphere[key] = atmosphere[key][1:] #removing the 1st value of each atmosphere
 
     return atmosphere
 
