@@ -19,6 +19,7 @@ from wv_converter import VMR2RH, RH2VMR
 from joblib import Parallel,delayed
 
 def get_sadata_atmosphere(season):
+    from getH2OforSADATA import getH2Ovalues
     sadata_file = "/scratch/uni/u237/users/tmachnitzki/psrad/python_svn/sadata.d"
     columns = ['z','p','t','RHO','H2O','O3','N2O','CO','CH4'] # without CO2
     atmosphere = {}
@@ -56,7 +57,11 @@ def get_sadata_atmosphere(season):
     else:
         fas_atm = get_fascod_atmosphere("/scratch/uni/u237/users/tlang/arts-xml-data/planets/Earth/Fascod/",
                                         season=season)
+
     atmosphere['CO2'] = fas_atm['CO2']
+    atmosphere['CO2'][:] = -777
+    for i in range(len(atmosphere['p'])):
+        atmosphere['CO2'][i] = fas_atm['CO2']
 
     # corrections:
     atmosphere["z"] *= 1000 #km -> m
@@ -66,6 +71,8 @@ def get_sadata_atmosphere(season):
     atmosphere["N2O"] *= 1e-6  # _->ppmv
     atmosphere["CO"] *= 1e-6  # _->ppmv
     atmosphere["CH4"] *= 1e-6  # _->ppmv
+
+    del atmosphere['RHO']
 
     return atmosphere
 
@@ -91,6 +98,9 @@ def get_fascod_atmosphere(fascod_path, season):
         atmosphere[name] = f.data.reshape(-1)
 
     atmosphere['p'] = pres
+
+    for key in atmosphere.keys():
+        atmosphere[key] = atmosphere[key][1:] #removing the 1st value of each atmosphere
 
     return atmosphere
 
@@ -230,8 +240,6 @@ if __name__ == '__main__':
     for fas_atm in atm_names:   #iterating over all fascod-atmospheres
 
         # fascod_atm_raw = get_fascod_atmosphere("/scratch/uni/u237/users/tlang/arts-xml-data/planets/Earth/Fascod/",season=fas_atm)
-        # for key in fascod_atm_raw.keys():
-        #     fascod_atm_raw[key] = fascod_atm_raw[key][1:] #removing the 1st value of each atmosphere
 
         fascod_atm_raw = get_sadata_atmosphere(season=fas_atm)
         print('Now calculating: ',fas_atm)
