@@ -27,15 +27,21 @@ def atmHist():
     df.index.name = "Station"
     df.columns.name = "Atmosphere"
 
+    cols = ['US-standard','midlatitude-summer','midlatitude-winter','subarctic-summer','subarctic-winter','subtropic-summer','subtropic-winter','tropical']
+    df =df[cols]
+
     # df1 = pd.DataFrame(df.stack(), columns=["data"]).reset_index()
 
     # ag = df1.groupby(['Atmosphere','Station']).sum().unstack()
 
     # ag.columns = ag.columns.droplevel()
-    plot = df.plot(kind='bar', colormap=cm.Accent, width=.8, figsize=(16, 9))
+    plot = df.plot(kind='bar', colormap=cm.Accent, width=.8, figsize=(8, 6))
     plot.set_ylabel("Correlation coefficient")
     plot.set_xlabel("Station")
-    plt.savefig("statistics/Correlation.png")
+    legend = plot.legend(frameon=True, loc="lower left")
+    legend.set_facecolor = "white"
+    plt.tight_layout()
+    plt.savefig("statistics/Correlation.png", dpi=600)
 
     plt.show()
 
@@ -81,12 +87,13 @@ def RMSEHIST():
     df.to_csv("statistics/RMSE.csv", sep=";")
 
     df.columns = df.columns.droplevel()
-    df = df.drop('Tiksi', 0)
-    df = df.drop('Toravere', 0)
-    plot = df.plot(kind='bar', colormap=cm.Accent, width=.8, figsize=(16, 9))
+    plot = df.plot(kind='bar', colormap=cm.Accent, width=.8, figsize=(8, 6))
     plot.set_ylabel("RMSE [kg/m2]")
     plot.set_xlabel("Station")
-    plt.savefig("statistics/RMSE.png")
+    legend = plot.legend(frameon=True, loc="lower left")
+    legend.set_facecolor = "white"
+    plt.tight_layout()
+    plt.savefig("statistics/RMSE.png", dpi=600)
 
     plt.show()
 
