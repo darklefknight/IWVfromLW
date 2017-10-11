@@ -4,7 +4,7 @@ from glob import glob
 from datetime import datetime as dt
 import locale
 locale.setlocale(locale.LC_ALL,'de_DE')
-
+import seaborn
 
 def get_results(station,atm):
     result_path = "results/" + station + "_sadata/" + atm + "/"
@@ -77,7 +77,7 @@ def get_results(station,atm):
 
 def makeHist(IWV):
     try:
-        fig = plt.figure(figsize=(9,9))
+        fig = plt.figure(figsize=(4.5,4.5))
         fig.suptitle("Results for " + station + "\nUsed atmosphere: " + atm)
         ax1 = plt.subplot(111)
         ax1.plot(IWV['IWV'],IWV['IWV_AERONET'], lw=0, marker=".")
@@ -91,7 +91,7 @@ def makeHist(IWV):
         x_line = np.linspace(0,60,61)
 
         ax1.plot(x_line,x_line,color="black",lw=1)
-        ax1.grid()
+        # ax1.grid()
 
         ax1.set_xlabel("Calculated IWV")
         ax1.set_ylabel("IWV from AERONET")
@@ -100,7 +100,7 @@ def makeHist(IWV):
         ax1.set_ylim([0, 50])
         ax1.legend(loc="upper left")
 
-        plt.savefig("figures/hist/" + station + "_" + atm + "_hist.png")
+        plt.savefig("figures/hist/" + station + "_" + atm + "_hist.png", dpi=600)
         plt.close(fig)
 
     except:
@@ -110,7 +110,7 @@ def makeHist(IWV):
 if __name__ == "__main__":
     # atms = ['midlatitude-summer', 'midlatitude-winter', 'subarctic-summer', 'subarctic-winter', 'tropical']
     atms= ['US-standard','subtropic-winter','subtropic-summer','midlatitude-summer', 'midlatitude-winter', 'subarctic-summer', 'subarctic-winter', 'tropical']
-
+    seaborn.set()
     # atm = "tropical"
     # atm= "midlatitude-summer"
     # atm = "midlatitude-winter"
@@ -139,13 +139,13 @@ if __name__ == "__main__":
 
             IWV = get_results(station,atm)
 
-            fig = plt.figure(figsize=(16,9))
+            fig = plt.figure(figsize=(10,5.5))
             fig.suptitle("Results for " + station + "\nUsed atmosphere: " + atm)
             ax1 = plt.subplot(211)
             ax1.plot(IWV['date'],IWV['IWV'],label="Calculated IWV",lw=1, color = "#728A19")
             ax1.plot(IWV['date'],IWV['IWV_AERONET'],label="AERONET-Data",lw=1, color = "#FE2712")
             ax1.legend(loc="upper left")
-            ax1.grid()
+            # ax1.grid()
             ax1.set_xlabel("Time")
             ax1.set_ylabel("IWV [kg/m2]")
             ax1.set_ylim([0,60])
@@ -153,9 +153,9 @@ if __name__ == "__main__":
             ax2 = plt.subplot(212)
             ax2.plot(IWV['date'],np.subtract(IWV['IWV'],IWV['IWV_AERONET']),color="#347B98",lw=1, label="Difference")
             ax2.set_ylim([-20,20])
-            ax2.grid()
+            # ax2.grid()
             ax2.set_xlabel("Time")
-            ax2.set_ylabel("Difference between calculated and measured IWV [kg/m2]")
+            ax2.set_ylabel("Difference [kg/m2]")
 
             ax2mean = np.mean(np.subtract(IWV['IWV'],IWV['IWV_AERONET']))
             ax2.plot(IWV['date'],[ax2mean for i in range(len(IWV['date']))],ls="--", color="#347B98", label="Mean Difference = %f kg/m2" %ax2mean)
@@ -163,7 +163,7 @@ if __name__ == "__main__":
             ax2.plot(IWV['date'], [ax2mean - 5 for i in range(len(IWV['date']))], ls="--", color="g")
             ax2.legend(loc="upper left")
 
-            plt.savefig("figures/" + station+"_" + atm+".png")
+            plt.savefig("figures/" + station+"_" + atm+".png", dpi=600)
             plt.close(fig)
 
 
