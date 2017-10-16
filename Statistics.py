@@ -30,6 +30,9 @@ def atmHist():
     cols = ['US-standard','midlatitude-summer','midlatitude-winter','subarctic-summer','subarctic-winter','subtropic-summer','subtropic-winter','tropical']
     df =df[cols]
 
+    df = df.reindex(["Barrow", "SEDE_BOKER", "Cart_Site", "Cabauw", "Gobabeb", "Darwin"])
+    df = df[df.index != "Fukuoka"]
+
     # df1 = pd.DataFrame(df.stack(), columns=["data"]).reset_index()
 
     # ag = df1.groupby(['Atmosphere','Station']).sum().unstack()
@@ -82,11 +85,15 @@ def RMSEHIST():
         'RMSE': RMSE_list
     })
 
-    df = df.groupby(['Station', 'Atmosphere']).sum().unstack()
 
+    df = df.groupby(['Station', 'Atmosphere']).sum().unstack()
+    df.columns = df.columns.droplevel() # get rid of the "RMSE" in the labels
+    df =df.reindex(["Barrow", "SEDE_BOKER", "Cart_Site", "Cabauw", "Gobabeb", "Darwin"])
+    print(df)
     df.to_csv("statistics/RMSE.csv", sep=";")
 
-    df.columns = df.columns.droplevel()
+
+
     plot = df.plot(kind='bar', colormap=cm.Accent, width=.8, figsize=(8, 6))
     plot.set_ylabel("RMSE [kg/m2]")
     plot.set_xlabel("Station")

@@ -5,7 +5,7 @@ import numpy as np
 from datetime import datetime as dt
 import calendar
 
-def download_bsrn(station_tag,datestr,verbose=4):
+def download_bsrn(station_tag,datestr,verbose=4,verify=True):
     path = station_tag
     year_str = datestr[:4]
     month_str = datestr[4:6]
@@ -23,6 +23,8 @@ def download_bsrn(station_tag,datestr,verbose=4):
     dates = []
     lw = []
     temp = []
+    diffuse = []
+    direct = []
 
     if not os.path.exists("tmp/"+filename):
         # download data from ftp-server:
@@ -76,13 +78,25 @@ def download_bsrn(station_tag,datestr,verbose=4):
                 line_temp = float(line2[8])
                 temp.append(line_temp)
 
+                if not verify:
+                    diffuse.append(float(line1[7]))
+                    direct.append(float(line2[0]))
+
         # os.remove("tmp/" + filename)
 
         dates = np.asarray(dates)
         lw = np.asarray(lw)
         temp = np.asarray(temp)
-        array = np.stack((dates,temp,lw),axis=1)
-        return array
+
+        if verify:
+            array = np.stack((dates, temp, lw), axis=1)
+            return array
+        else:
+            diffuse = np.asarray(diffuse)
+            direct = np.asarray(direct)
+            array = np.stack((dates, temp, lw, diffuse, direct), axis=1)
+            return array
+
 
     except:
         if verbose >= 4:
