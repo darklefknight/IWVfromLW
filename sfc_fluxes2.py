@@ -226,7 +226,7 @@ if __name__ == '__main__':
 
     atm_names= ['US-standard','subtropic-winter','subtropic-summer','midlatitude-summer', 'midlatitude-winter', 'subarctic-summer', 'subarctic-winter', 'tropical']
     
-    LIMIT_HEIGHT = True  #if True: iwv just up to 12 Km. Else up to 95 Km
+    LIMIT_HEIGHT = False  #if True: iwv just up to 12 Km. Else up to 95 Km
     Rw = tp.atmosphere.constants.gas_constant_water_vapor #Gaskonstante von Wasserdampf
 
     t_low =  -50  #Darf nicht größer 0 sein
