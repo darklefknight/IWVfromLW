@@ -43,7 +43,7 @@ if __name__ == "__main__":
         yy.append(site.lat())
 
     # PLotting:
-    plt.figure(figsize=(16, 9))
+    fig = plt.figure(figsize=(16, 9))
     m = Basemap(projection='merc', llcrnrlat=-70, urcrnrlat=75, llcrnrlon=-170, urcrnrlon=170, resolution=None)
 
     x, y = m(xx, yy)
@@ -69,4 +69,5 @@ if __name__ == "__main__":
     # m.drawmeridians(meridians, labels=[0, 0, 0, 1], fontsize=10)
     # m.drawparallels(parallels, labels=[1, 0, 0, 0], fontsize=10)
     # plt.title("Cylindrical Equal-Area Projection")
-    plt.show()
+    # plt.show()
+    plt.savefig("Testsites.png")

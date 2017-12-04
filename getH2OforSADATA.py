@@ -10,7 +10,7 @@ def getCO2values(fas,sad):
     f = interp1d(fas_p,fas_co2)
     values = f(sad['p'])
 
-    print(len(sad['p']),len(values))
+    # print(len(sad['p']),len(values))
     return values
 
 
