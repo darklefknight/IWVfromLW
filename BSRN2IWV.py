@@ -11,9 +11,8 @@ import os
 import shutil
 from functools import lru_cache
 import locale
-
 locale.setlocale(locale.LC_ALL, 'de_DE')
-
+import socket
 
 
 def getValueAtDate(date, array):
@@ -62,8 +61,11 @@ def getIWVFromTable(date, temp, flx, atm_name, atm):
 
 
 def getAtm(atm_name):
-    # PATH = "/Users/u300844/t7home/tmachnitzki/psrad/python_svn/wv_tables/"
-    PATH = "/scratch/uni/u237/users/tmachnitzki/psrad/python_svn/wv_tables/"
+    if socket.gethostname() == "thunder7":
+        PATH = "/scratch/uni/u237/users/tmachnitzki/psrad/python_svn/wv_tables/"
+    else:
+        PATH = "/Users/u300844/t7home/tmachnitzki/psrad/python_svn/wv_tables/"
+
     # FILE = atm_name + "_dependent.csv"
     FILE = atm_name + "_dependent_sadata.csv"
 

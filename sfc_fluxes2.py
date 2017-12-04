@@ -193,8 +193,8 @@ def start_calculations(fascod_atm_raw,temp, h2o_low,h2o_high,h2o_step, LIMIT_HEI
     for h2o in np.arange(h2o_low, h2o_high + 1e-9, h2o_step):  # iterating over relative humidity corrections
 
         # fascod_atm['H2O'] = RH2VMR(h2o, fascod_atm['p'], fascod_atm['t'])  #change relative humidity in all hights to be the same
-        fascod_atm['H2O'][0:3] = RH2VMR(h2o, fascod_atm['p'][0:3],
-                                        fascod_atm['t'][0:3])  # change relative humidity in all lower hights to be the same fixed value
+        fascod_atm['H2O'][0:2] = RH2VMR(h2o, fascod_atm['p'][0:2],
+                                        fascod_atm['t'][0:2])  # change relative humidity in all lower hights to be the same fixed value
 
         # next line makes results worse:
         # fascod_atm['H2O'][3:8] = RH2VMR(fascod_RH[3:8],fascod_atm['p'][3:8],fascod_atm['t'][3:8]) #change relative humidity in all upper hights to stay relative the same with changing temperature
