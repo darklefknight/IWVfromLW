@@ -121,7 +121,7 @@ def BSRN2IWV(datestr,station,tag,station_height,atm_name,verbose):
         f.write("Date ; Time ; T[K] ; LWdown[W/m2] ; Calculated_IWV[kg/m2] ; aeronet_IWV[kg/m2] ; Distance\n")
 
         for good_date in aeronet_good_dates:
-            print(good_date)
+            # print(good_date)
             good_str = good_date
             # print(good_date)
 
@@ -224,7 +224,7 @@ if __name__ == "__main__":
     aeronetPath = "/scratch/uni/u237/users/tmachnitzki/psrad/aeronet_inversion/INV/DUBOV/ALL_POINTS/"
 
     atms= ['US-standard','subtropic-winter','subtropic-summer','midlatitude-summer', 'midlatitude-winter', 'subarctic-summer', 'subarctic-winter', 'tropical']
-
+    # atms = ['midlatitude-winter']
 
 
     # station = "Barrow"
@@ -259,7 +259,7 @@ if __name__ == "__main__":
     # atms = ['subtropic-winter']
 
     RERUN = True #set TRUE if you want to delete old results and rerun everything. Else just new stations will be calculated
-    verbose = 1 #between 0 and 4
+    verbose = 0 #between 0 and 4
 
     speed_up = 17 # 1 and 4
 

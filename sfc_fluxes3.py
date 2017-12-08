@@ -222,14 +222,16 @@ def calc_hr(soundings, spec_range, const_albedo=0.05, zenith_angle=53):
 
 def start_calculations(fascod_atm_raw,temp, h2o_low,h2o_high,h2o_step, LIMIT_HEIGHT=False):
     fascod_atm = fascod_atm_raw.copy()
+
     fascod_atm['t'] = np.add(fascod_atm['t'],
                              temp)  # adding the temperature change to the original temperature (moving the temperature profile to the right/left in a skew-t diagram)
+    fascod_H2O_RH = VMR2RH(fascod_atm["H2O"], fascod_atm["p"], fascod_atm_raw["t"])
     return_string = []
     for h2o in np.arange(h2o_low, h2o_high + 1e-9, h2o_step):  # iterating over relative humidity corrections
 
+        fascod_H2O_RH_new = np.multiply(fascod_H2O_RH,h2o)
         # fascod_atm['H2O'] = RH2VMR(h2o, fascod_atm['p'], fascod_atm['t'])  #change relative humidity in all hights to be the same
-        fascod_atm['H2O'][0:2] = RH2VMR(h2o, fascod_atm['p'][0:2],
-                                        fascod_atm['t'][0:2])  # change relative humidity in all lower hights to be the same fixed value
+        fascod_atm["H2O"] = RH2VMR(fascod_H2O_RH_new,fascod_atm["p"],fascod_atm["t"])
 
         # next line makes results worse:
         # fascod_atm['H2O'][3:8] = RH2VMR(fascod_RH[3:8],fascod_atm['p'][3:8],fascod_atm['t'][3:8]) #change relative humidity in all upper hights to stay relative the same with changing temperature
@@ -237,8 +239,8 @@ def start_calculations(fascod_atm_raw,temp, h2o_low,h2o_high,h2o_step, LIMIT_HEI
         result_temp, H2O, T = calc_hr(fascod_atm, 'lw')  # <------------- PSRAD calculation. T = surface temperature
 
         if LIMIT_HEIGHT:
-            RH = VMR2RH(H2O[:12], fascod_atm['p'][:12], fascod_atm['t'][:12])  # Relative Humidity in all hights
-            H2O_integrated = tp.atmosphere.iwv(H2O[:12], fascod_atm['p'][:12], fascod_atm['t'][:12],
+            RH = VMR2RH(H2O[:], fascod_atm['p'][:], fascod_atm['t'][:])  # Relative Humidity in all hights
+            H2O_integrated = tp.atmosphere.iwv(H2O[:], fascod_atm['p'][:], fascod_atm['t'][:12],
                                                fascod_atm['z'][:12])  # integrated water vapor #TODO: make h2o not linear but log when integrating
 
         else:
@@ -260,7 +262,7 @@ if __name__ == '__main__':
     # del atm_names[atm_names.index('README')]
 
     atm_names= ['US-standard','subtropic-winter','subtropic-summer','midlatitude-summer', 'midlatitude-winter', 'subarctic-summer', 'subarctic-winter', 'tropical']
-    
+    # atm_names = ["midlatitude-winter"]
     LIMIT_HEIGHT = False  #if True: iwv just up to 12 Km. Else up to 95 Km
     Rw = tp.atmosphere.constants.gas_constant_water_vapor #Gaskonstante von Wasserdampf
 
@@ -268,9 +270,9 @@ if __name__ == '__main__':
     t_high = 60
     t_step = 0.1
     
-    h2o_low = 0.001 #should not be 0
-    h2o_high = 1
-    h2o_step = 0.001
+    h2o_low = 0.01 #should not be 0
+    h2o_high = 10
+    h2o_step = 0.01
     
     #for testing:
     # atm_names = ['midlatitude-summer']  #<-- Das hier auskommentieren um alle Atmosphären zu berechnen
@@ -283,8 +285,6 @@ if __name__ == '__main__':
         print('Now calculating: ',fas_atm)
         temp_counter = 0
 
-
-
         fascod_RH = VMR2RH(fascod_atm_raw['H2O'],fascod_atm_raw['p'],fascod_atm_raw['t'])
 
         atm_result = np.zeros([int((h2o_high-abs(h2o_low))*int(1/h2o_step))+1,int(1+(abs(t_low)+t_high)*int(1/t_step))])  #Legt die Größe des Ergebnis-Arrays fest
@@ -293,7 +293,7 @@ if __name__ == '__main__':
         H2O_result = []
 
         # for temp in np.arange(t_low,t_high+1e-9,t_step):    #iterating over temperature corrections
-        elements_cl = Parallel(n_jobs=-1, verbose=5)(delayed(start_calculations)(fascod_atm_raw,temp,h2o_low,h2o_high,h2o_step,LIMIT_HEIGHT) for temp in np.arange(t_low,t_high+1e-9,t_step))
+        elements_cl = Parallel(n_jobs=1, verbose=5)(delayed(start_calculations)(fascod_atm_raw,temp,h2o_low,h2o_high,h2o_step,LIMIT_HEIGHT) for temp in np.arange(t_low,t_high+1e-9,t_step))
 
         result_string = result_string_head + sum(elements_cl,[])
 

@@ -54,6 +54,7 @@ def plotATMS():
             'tropical':cmap(0.875)
     }
     atms = ['US-standard', 'subtropic-winter', 'subtropic-summer', 'midlatitude-summer', 'midlatitude-winter','subarctic-summer', 'subarctic-winter', 'tropical']
+    atms = ["midlatitude-winter"]
 
     fig = plt.figure(figsize=(8, 4.5))
     fig.suptitle("Temperature = 280K ")

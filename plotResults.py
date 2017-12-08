@@ -118,6 +118,7 @@ def makeHist(station,atms):
 if __name__ == "__main__":
     # atms = ['midlatitude-summer', 'midlatitude-winter', 'subarctic-summer', 'subarctic-winter', 'tropical']
     atms= ['US-standard','subtropic-winter','subtropic-summer','midlatitude-summer', 'midlatitude-winter', 'subarctic-summer', 'subarctic-winter', 'tropical']
+    atms = ["midlatitude-winter"]
     seaborn.set()
     # atm = "tropical"
     # atm= "midlatitude-summer"
