@@ -35,7 +35,7 @@ if __name__ == "__main__":
     test_sites = []
     AERONET = AERONET2Site()
     FILE = "/scratch/uni/u237/users/tmachnitzki/psrad/python_svn/BSRN_stations.csv"
-    stations = ["Barrow", "SedeBoqer", "SouthernGreatPlains", "Cabauw", "Gobabeb", "Darwin"]
+    stations = ["Barrow", "Sede Boqer", "Southern Great Plains", "Cabauw", "Gobabeb", "Darwin"]
 
     with open(FILE,"rb") as f:
         data = np.genfromtxt(f,
@@ -63,6 +63,16 @@ if __name__ == "__main__":
     # PLotting:
     fig = plt.figure(figsize=(16, 9))
     m = Basemap(projection='cyl', llcrnrlat=-85, urcrnrlat=85, llcrnrlon=-180, urcrnrlon=180, resolution=None)
+    parallels = np.arange(-180., 180., 45.)
+    meridians = np.arange(-120., 140., 60.)
+
+    m.drawmeridians(meridians, labels=[0, 0, 0, 1], fontsize=20)
+    m.drawparallels(parallels, labels=[1, 0, 0, 0], fontsize=0, xoffset=-18)
+
+    label_props = dict(boxstyle='round', facecolor='white',linewidth=0, alpha=1)
+    for i,y,s in zip(range(-45,50,45),[-45,0,45],["S","","N"]):
+        x = -170
+        plt.text(x,y-2,"%s$^\circ$%s"%(abs(i),s),bbox=label_props,fontsize=20)
 
     x, y = m(xx, yy)
 
@@ -72,7 +82,7 @@ if __name__ == "__main__":
     # m.fillcontinents(color='grey', lake_color="white")
     # m.drawmapboundary(fill_color='white')
     # m.scatter(x, y, 30, color="blue", marker="x", zorder=3)
-    m.scatter(x, y, 100, color="cyan",alpha=0.8, marker="o", zorder=2,linewidth=1,edgecolor="black", label="BSRN")
+    m.scatter(x, y, 250, color="cyan",alpha=0.8, marker="o", zorder=2,linewidth=1,edgecolor="black", label="BSRN")
 
     #=================================
     #AERONET SITES:
@@ -85,7 +95,7 @@ if __name__ == "__main__":
         yy.append(site.lat())
 
     x, y = m(xx, yy)
-    m.scatter(x, y, 20, color="yellow", alpha=0.6, marker="o", zorder=2, linewidth=1, edgecolor="black", label="AERONET")
+    m.scatter(x, y, 100, color="yellow", alpha=0.6, marker="o", zorder=2, linewidth=1, edgecolor="black", label="AERONET")
 
     #=================================
     # Test sites:
@@ -103,24 +113,20 @@ if __name__ == "__main__":
     for i,element in enumerate(x1):
         x1[i] += 300000
 
-    m.scatter(x, y, 100, color="red", alpha=0.6, marker="o", zorder=2, linewidth=1, edgecolor="black", label="Test Stationen")
+    m.scatter(x, y, 250, color="orangered", alpha=0.8, marker="o", zorder=2, linewidth=1, edgecolor="black", label="Test Stationen")
 
-    props = dict(boxstyle='round', facecolor='red', alpha=0.6)
+    props = dict(boxstyle='round', facecolor='orangered', alpha=0.8)
     for i,site in enumerate(test_sites):
-        plt.text(x[i] + 5, y[i] - 1, site.name(), bbox=props, fontsize=12)
+        plt.text(x[i] + 5, y[i] - 1, site.name(), bbox=props, fontsize=20)
 
-    parallels = np.arange(-180., 180., 45.)
-    meridians = np.arange(-180., 180., 60.)
 
-    m.drawmeridians(meridians, labels=[0, 0, 0, 1], fontsize=10)
-    m.drawparallels(parallels, labels=[1, 0, 0, 0], fontsize=10)
     # plt.title("Cylindrical Equal-Area Projection")
     # plt.show()
 
     #=================================
     # LEGEND:
     #=================================
-    plt.legend(loc="lower left", fontsize=12)
+    plt.legend(loc="lower left", fontsize=20)
     plt.tight_layout()
 
 

@@ -18,10 +18,17 @@ except:
 from wv_converter import VMR2RH, RH2VMR
 from joblib import Parallel,delayed
 from scipy.interpolate import interp1d
+import socket
 
 def get_sadata_atmosphere(season):
     from getH2OforSADATA import getCO2values
-    sadata_file = "/scratch/uni/u237/users/tmachnitzki/psrad/python_svn/sadata.d"
+
+    if socket.gethostname() == "apple262.cen.uni-hamburg.de":
+        path0 = "/Users/u300844/t7home/tmachnitzki/"
+    else:
+        path0 = "/scratch/uni/u237/users/tmachnitzki/"
+
+    sadata_file = path0+"psrad/python_svn/sadata.d"
     columns = ['z','p','t','RHO','H2O','O3','N2O','CO','CH4'] # without CO2
     atmosphere = {}
 
@@ -64,7 +71,7 @@ def get_sadata_atmosphere(season):
     del atmosphere['RHO']
 
     if np.logical_or(np.logical_or((season == "subtropic-summer"), (season == "subtropic-winter")),season == "US-standard"):
-        with open("/scratch/uni/u237/users/tmachnitzki/psrad/python_svn/midlatitude_winter_CO2.txt", "rb") as f:
+        with open(path0+"psrad/python_svn/midlatitude_winter_CO2.txt", "rb") as f:
             CO2_file = np.genfromtxt(f,dtype=None)
         atmosphere["CO2"] = CO2_file
     else:
@@ -81,6 +88,13 @@ def get_sadata_atmosphere(season):
 
 
 def moreLowerLevelsForAtm(atm,h2o,method='linear'):
+    """
+    NOT USED!!!!
+    :param atm:
+    :param h2o:
+    :param method:
+    :return:
+    """
     for key in atm.keys():
         curKey = atm[key][0:4] # between 0 and 3 km
 
@@ -222,14 +236,16 @@ def calc_hr(soundings, spec_range, const_albedo=0.05, zenith_angle=53):
 
 def start_calculations(fascod_atm_raw,temp, h2o_low,h2o_high,h2o_step, LIMIT_HEIGHT=False):
     fascod_atm = fascod_atm_raw.copy()
+    fascod_atm_rh_raw = VMR2RH(fascod_atm_raw["H2O"],fascod_atm_raw["p"],fascod_atm_raw["t"])
     fascod_atm['t'] = np.add(fascod_atm['t'],
                              temp)  # adding the temperature change to the original temperature (moving the temperature profile to the right/left in a skew-t diagram)
     return_string = []
     for h2o in np.arange(h2o_low, h2o_high + 1e-9, h2o_step):  # iterating over relative humidity corrections
 
         # fascod_atm['H2O'] = RH2VMR(h2o, fascod_atm['p'], fascod_atm['t'])  #change relative humidity in all hights to be the same
-        fascod_atm['H2O'][0:2] = RH2VMR(h2o, fascod_atm['p'][0:2],
-                                        fascod_atm['t'][0:2])  # change relative humidity in all lower hights to be the same fixed value
+        fascod_atm['H2O'][0:3] = RH2VMR(h2o, fascod_atm['p'][0:3],
+                                        fascod_atm['t'][0:3])  # change relative humidity in all lower hights to be the same fixed value
+        fascod_atm["H2O"][3:] = RH2VMR(fascod_atm_rh_raw[3:],fascod_atm["p"][3:],fascod_atm["t"][3:])
 
         # next line makes results worse:
         # fascod_atm['H2O'][3:8] = RH2VMR(fascod_RH[3:8],fascod_atm['p'][3:8],fascod_atm['t'][3:8]) #change relative humidity in all upper hights to stay relative the same with changing temperature

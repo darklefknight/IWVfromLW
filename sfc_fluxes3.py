@@ -293,7 +293,7 @@ if __name__ == '__main__':
         H2O_result = []
 
         # for temp in np.arange(t_low,t_high+1e-9,t_step):    #iterating over temperature corrections
-        elements_cl = Parallel(n_jobs=1, verbose=5)(delayed(start_calculations)(fascod_atm_raw,temp,h2o_low,h2o_high,h2o_step,LIMIT_HEIGHT) for temp in np.arange(t_low,t_high+1e-9,t_step))
+        elements_cl = Parallel(n_jobs=-1, verbose=5)(delayed(start_calculations)(fascod_atm_raw,temp,h2o_low,h2o_high,h2o_step,LIMIT_HEIGHT) for temp in np.arange(t_low,t_high+1e-9,t_step))
 
         result_string = result_string_head + sum(elements_cl,[])
 

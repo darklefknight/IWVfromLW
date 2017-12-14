@@ -6,4 +6,21 @@
 
 3. plotResults
 
-4.
+4.Statistics
+
+5. plotPSRADResult
+
+
+
+----------------------------------------------------
+
+
+Radiosonden von lamont OK, vergleichen mit E13(Southern great plains) nummer: 74646
+
+Cart Site große abweichungen im September 2014 (besonders 9.September) wegen Vulkanausbruch auf Island am 4.September?
+
+
+
+---------------------------------------------------------------
+
+IWVFromSounding.py:

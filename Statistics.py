@@ -46,7 +46,7 @@ def atmHist():
     plt.tight_layout()
     plt.savefig("statistics/Correlation.png", dpi=600)
 
-    plt.show()
+    # plt.show()
 
 
 def RMSEHIST():
@@ -102,7 +102,7 @@ def RMSEHIST():
     plt.tight_layout()
     plt.savefig("statistics/RMSE.png", dpi=600)
 
-    plt.show()
+    # plt.show()
 
 
 if __name__ == "__main__":

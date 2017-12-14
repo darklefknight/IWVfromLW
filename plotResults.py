@@ -93,14 +93,17 @@ def makeHist(station,atms):
         IWV = get_results(station,atm)
         ax.plot(IWV['IWV'],IWV['IWV_AERONET'], lw=0, marker=".")
 
-        m, b = np.polyfit(IWV['IWV'],IWV['IWV_AERONET'], 1)
-        x = IWV['IWV'][:].copy()
-        y = np.add(np.multiply(m,x),b)
-        ax.plot(x, y, '-',label="m={} \nb={}".format(round(m,2),round(b,2)))
+        try:
+            m, b = np.polyfit(IWV['IWV'],IWV['IWV_AERONET'], 1)
+            x = IWV['IWV'][:].copy()
+            y = np.add(np.multiply(m,x),b)
+            ax.plot(x, y, '-',label="m={} \nb={}".format(round(m,2),round(b,2)))
 
-        x_line = np.linspace(0,60,61)
+            x_line = np.linspace(0,60,61)
 
-        ax.plot(x_line,x_line,color="black",lw=1)
+            ax.plot(x_line,x_line,color="black",lw=1)
+        except:
+            pass
         # ax1.grid()
 
         ax.set_xlabel("Calculated IWV")
@@ -118,7 +121,7 @@ def makeHist(station,atms):
 if __name__ == "__main__":
     # atms = ['midlatitude-summer', 'midlatitude-winter', 'subarctic-summer', 'subarctic-winter', 'tropical']
     atms= ['US-standard','subtropic-winter','subtropic-summer','midlatitude-summer', 'midlatitude-winter', 'subarctic-summer', 'subarctic-winter', 'tropical']
-    atms = ["midlatitude-winter"]
+    # atms = ["midlatitude-winter"]
     seaborn.set()
     # atm = "tropical"
     # atm= "midlatitude-summer"
@@ -180,12 +183,8 @@ if __name__ == "__main__":
 
             correlation= np.corrcoef(IWV['IWV'],IWV['IWV_AERONET'])[0,1]
             f.write("%f ;" % correlation)
-
-
-
-
     f.close()
 
-    # for station in stations:
-    #     makeHist(station,atms)
+    for station in stations:
+        makeHist(station,atms)
 
