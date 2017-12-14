@@ -86,7 +86,7 @@ def makeHist(station,atms):
     # ax6 = fig.add_subplot(822)
     # ax7 = fig.add_subplot(832)
     # ax8 = fig.add_subplot(842)
-
+    fig.suptitle("%s"%station)
     axes = [ax1,ax2,ax3,ax4,ax5,ax6,ax7,ax8]
     for atm,ax in zip(atms,axes):
 
@@ -163,20 +163,26 @@ if __name__ == "__main__":
             ax1.set_ylim([0,60])
 
             ax2 = plt.subplot(212)
-            ax2.plot(IWV['date'],np.subtract(IWV['IWV'],IWV['IWV_AERONET']),color="#347B98",lw=1, label="Difference")
+            ax2.plot(IWV['date'],np.subtract(IWV['IWV'],IWV['IWV_AERONET']),color="#347B98",lw=1, label="Differenz")
             ax2.set_ylim([-20,20])
             # ax2.grid()
             ax2.set_xlabel("Time")
             ax2.set_ylabel("Difference [kg/m2]")
 
-            ax2mean = np.mean(np.subtract(IWV['IWV'],IWV['IWV_AERONET']))
-            ax2.plot(IWV['date'],[ax2mean for i in range(len(IWV['date']))],ls="--", color="#347B98", label="Mean Difference = %f kg/m2" %ax2mean)
-            ax2.plot(IWV['date'], [ax2mean+5 for i in range(len(IWV['date']))], ls="--", color="g")
-            ax2.plot(IWV['date'], [ax2mean - 5 for i in range(len(IWV['date']))], ls="--", color="g")
-            ax2.legend(loc="upper left")
+            try:
+                ax2mean = np.mean(np.subtract(IWV['IWV'],IWV['IWV_AERONET']))
+                ax2percentile95 = np.percentile(np.subtract(IWV['IWV'], IWV['IWV_AERONET']),95)
+                ax2.plot(IWV['date'],[ax2mean for i in range(len(IWV['date']))],ls="--", color="#347B98", label="BIAS = %5.3f kg/m2" %ax2mean)
+                ax2.plot(IWV['date'], [ax2mean + ax2percentile95 for i in range(len(IWV['date']))], ls="--", color="g", label="95%% Percentil = %5.3f kg/m2" % ax2percentile95)
+                ax2.plot(IWV['date'], [ax2mean - ax2percentile95 for i in range(len(IWV['date']))], ls="--", color="g")
+                legend = ax2.legend(loc="lower left",frameon=True)
+                legend.set_facecolor = "white"
 
-            plt.savefig("figures/" + station+"_" + atm+".png", dpi=600)
-            plt.close(fig)
+                plt.savefig("figures/" + station+"_" + atm+".png", dpi=600)
+                plt.close(fig)
+            except:
+                plt.close(fig)
+                continue
 
 
 

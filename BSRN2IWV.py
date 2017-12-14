@@ -281,7 +281,7 @@ if __name__ == "__main__":
             if verbose >=1:
                 print(station, atm)
             for y in range(2000,2017,speed_up):
-                Parallel(n_jobs=-1,verbose=5)(delayed(startIWV)(y,m,station,tag,height,atm,speed_up,verbose) for m in range(0,12*speed_up,1))
+                Parallel(n_jobs=10,verbose=5)(delayed(startIWV)(y,m,station,tag,height,atm,speed_up,verbose) for m in range(0,12*speed_up,1))
 
 
     # TODO: interpolate between winter and summer atmosphere depending on season?

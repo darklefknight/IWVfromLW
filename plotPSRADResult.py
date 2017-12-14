@@ -8,14 +8,15 @@ def plotOneTemp(atm):
     FILE = home + "wv_tables/" + atm + "_dependent_sadata.csv"
 
     cmap = cm.get_cmap('Accent')
+
     colors = {
             'US-standard': cmap(0),
-            'subtropic-winter': cmap(0.125),
-            'subtropic-summer':cmap(0.25),
-            'midlatitude-summer':cmap(0.375),
-            'midlatitude-winter':cmap(0.5),
-            'subarctic-summer':cmap(0.625),
-            'subarctic-winter':cmap(0.75),
+            'midlatitude-summer': cmap(0.125),
+            'midlatitude-winter':cmap(0.25),
+            'subarctic-summer':cmap(0.375),
+            'subarctic-winter':cmap(0.5),
+            'subtropic-summer':cmap(0.625),
+            'subtropic-winter':cmap(0.75),
             'tropical':cmap(0.875)
     }
 
@@ -35,24 +36,27 @@ def plotOneTemp(atm):
         ax1.plot(oneT['IWV'],oneT['flxd'], label=str(T), color=cmap(i))
 
 
-    ax1.legend(loc="upper left")
+    ax1.legend(loc="lower right")
     ax1.set_xlabel("IWV (kg/m2)")
     ax1.set_ylabel("FLXD (W/m2)")
 
     plt.savefig("oneTemp_%s.png"%atm, dpi=800)
 
 def plotATMS():
+
     cmap = cm.get_cmap('Accent')
     colors = {
             'US-standard': cmap(0),
-            'subtropic-winter': cmap(0.125),
-            'subtropic-summer':cmap(0.25),
-            'midlatitude-summer':cmap(0.375),
-            'midlatitude-winter':cmap(0.5),
-            'subarctic-summer':cmap(0.625),
-            'subarctic-winter':cmap(0.75),
+            'midlatitude-summer': cmap(0.125),
+            'midlatitude-winter':cmap(0.25),
+            'subarctic-summer':cmap(0.375),
+            'subarctic-winter':cmap(0.5),
+            'subtropic-summer':cmap(0.625),
+            'subtropic-winter':cmap(0.75),
             'tropical':cmap(0.875)
     }
+
+
     atms = ['US-standard', 'subtropic-winter', 'subtropic-summer', 'midlatitude-summer', 'midlatitude-winter','subarctic-summer', 'subarctic-winter', 'tropical']
     # atms = ["midlatitude-winter"]
 
@@ -73,7 +77,7 @@ def plotATMS():
         ax1.plot(oneT['IWV'], oneT['flxd'], label=atm, color=colors[atm])
 
 
-    ax1.legend(loc="upper left")
+    ax1.legend(loc="lower right")
     ax1.set_xlabel("IWV (kg/m2)")
     ax1.set_ylabel("FLXD (W/m2)")
     plt.savefig("ATMS.png", dpi=800)
