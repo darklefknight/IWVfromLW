@@ -33,7 +33,7 @@ def plotOneTemp(atm):
     for i,T in zip(np.linspace(0,0.8,5),range(250,300,10)):
         oneT = result[np.where(result['Temperature'] == T)]
         one_T_list.append(oneT)
-        ax1.plot(oneT['IWV'],oneT['flxd'], label=str(T), color=cmap(i))
+        ax1.plot(oneT['IWV'],oneT['flxd'], label=str(T)+"$\,K$", color=cmap(i))
 
 
     ax1.legend(loc="lower right")
@@ -61,7 +61,7 @@ def plotATMS():
     # atms = ["midlatitude-winter"]
 
     fig = plt.figure(figsize=(8, 4.5))
-    fig.suptitle("Temperature = 280K ")
+    fig.suptitle("Temperatur = $280\,K$ ")
     ax1 = fig.add_subplot(111)
     for atm in atms:
         print(atm)
@@ -81,6 +81,7 @@ def plotATMS():
     ax1.set_xlabel("IWV (kg/m2)")
     ax1.set_ylabel("FLXD (W/m2)")
     plt.savefig("ATMS.png", dpi=800)
+
 
 if __name__ == "__main__":
     FASCOD_PATH = "/scratch/uni/u237/users/tlang/arts-xml-data/planets/Earth/Fascod/"

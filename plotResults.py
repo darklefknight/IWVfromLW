@@ -106,8 +106,8 @@ def makeHist(station,atms):
             pass
         # ax1.grid()
 
-        ax.set_xlabel("Calculated IWV")
-        ax.set_ylabel("IWV from AERONET")
+        ax.set_xlabel("IWV aus BSRN")
+        ax.set_ylabel("IWV aus AERONET")
 
         ax.set_xlim([0, 50])
         ax.set_ylim([0, 50])
@@ -152,10 +152,10 @@ if __name__ == "__main__":
             IWV = get_results(station,atm)
 
             fig = plt.figure(figsize=(10,5.5))
-            fig.suptitle("Results for " + station + "\nUsed atmosphere: " + atm)
+            fig.suptitle(station + "\nBenutzte Atmosphäre: " + atm)
             ax1 = plt.subplot(211)
-            ax1.plot(IWV['date'],IWV['IWV'],label="Calculated IWV",lw=1, color = "#728A19")
-            ax1.plot(IWV['date'],IWV['IWV_AERONET'],label="AERONET-Data",lw=1, color = "#FE2712")
+            ax1.plot(IWV['date'],IWV['IWV'],label="IWV aus BSRN",lw=1, color = "#728A19")
+            ax1.plot(IWV['date'],IWV['IWV_AERONET'],label="IWV aus AERONET",lw=1, color = "#FE2712")
             ax1.legend(loc="upper left")
             # ax1.grid()
             ax1.set_xlabel("Time")
@@ -166,14 +166,14 @@ if __name__ == "__main__":
             ax2.plot(IWV['date'],np.subtract(IWV['IWV'],IWV['IWV_AERONET']),color="#347B98",lw=1, label="Differenz")
             ax2.set_ylim([-20,20])
             # ax2.grid()
-            ax2.set_xlabel("Time")
-            ax2.set_ylabel("Difference [kg/m2]")
+            ax2.set_xlabel("Zeit")
+            ax2.set_ylabel("Differenz [kg/m2]")
 
             try:
                 ax2mean = np.mean(np.subtract(IWV['IWV'],IWV['IWV_AERONET']))
-                ax2percentile95 = np.percentile(np.subtract(IWV['IWV'], IWV['IWV_AERONET']),95)
+                ax2percentile95 = np.nanpercentile(np.subtract(IWV['IWV'], IWV['IWV_AERONET']),95)
                 ax2.plot(IWV['date'],[ax2mean for i in range(len(IWV['date']))],ls="--", color="#347B98", label="BIAS = %5.3f kg/m2" %ax2mean)
-                ax2.plot(IWV['date'], [ax2mean + ax2percentile95 for i in range(len(IWV['date']))], ls="--", color="g", label="95%% Percentil = %5.3f kg/m2" % ax2percentile95)
+                ax2.plot(IWV['date'], [ax2mean + ax2percentile95 for i in range(len(IWV['date']))], ls="--", color="g", label="95%% Perzentil = %5.3f kg/m2" % ax2percentile95)
                 ax2.plot(IWV['date'], [ax2mean - ax2percentile95 for i in range(len(IWV['date']))], ls="--", color="g")
                 legend = ax2.legend(loc="lower left",frameon=True)
                 legend.set_facecolor = "white"
