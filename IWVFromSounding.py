@@ -36,7 +36,7 @@ def getDataFromSoundingfile(time=12):
     return data
 
 if __name__ == "__main__":
-    data = getDataFromSoundingfile(time=18)
+    data = getDataFromSoundingfile(time=24)
     VMR = RH2VMR(data["RELH"],data["PRES"],data["TEMP"])
     IWV = iwv(VMR,data["PRES"],data["TEMP"],data["HGHT"])
     print(IWV)
