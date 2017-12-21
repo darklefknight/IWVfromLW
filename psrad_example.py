@@ -118,7 +118,9 @@ def calc_hr(soundings, spec_range, const_albedo=0.05, zenith_angle=53):
 if __name__ == '__main__':
     fascod_atm = get_fascod_atmosphere(
         "/scratch/uni/u237/users/tlang/arts-xml-data/planets/Earth/Fascod/",
-        season='subarctic-winter')
+        season='tropical')
+    home = "/scratch/uni/u237/users/tmachnitzki/psrad/python_svn/"
+
     results_lw = calc_hr(fascod_atm, 'lw')
     results_sw = calc_hr(fascod_atm, 'sw')
 
@@ -132,12 +134,12 @@ if __name__ == '__main__':
     ax2.plot(fascod_atm['H2O'], fascod_atm['p'] * 1e-2)
     ax2.set_xlabel('H$_2$O (VMR)')
 
-    ax3.plot(results_lw['hr'], fascod_atm['p'] * 1e-2, label='Longwave')
-    ax3.plot(results_sw['hr'], fascod_atm['p'] * 1e-2, label='Shortwave')
-    ax3.plot(results_sw['hr'] + results_lw['hr'], fascod_atm['p'] * 1e-2,
-             label='Net rate')
-    ax3.set_xlabel('Heatingrate (K/day)')
+    ax3.plot(results_lw['flxd_clr'][:-1], fascod_atm['p'] * 1e-2, label='Longwave')
+    ax3.plot(results_sw['flxd_clr'][:-1], fascod_atm['p'] * 1e-2, label='Shortwave')
+    # ax3.plot(results_sw['hr'] + results_lw['hr'], fascod_atm['p'] * 1e-2,
+    #          label='Net rate')
+    ax3.set_xlabel('Downward_flux (W/m2)')
     ax3.set_yscale('log')
     ax3.legend()
 
-    fig.savefig('./python/plots/psrad_example_results.pdf', dpi=300)
+    fig.savefig(home + 'psrad_example_results.pdf', dpi=300)
