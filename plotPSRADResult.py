@@ -28,7 +28,7 @@ def plotOneTemp(atm):
 
     one_T_list = []
     fig = plt.figure(figsize=(8, 4.5))
-    fig.suptitle(atm)
+    # fig.suptitle(atm)
     ax1 = fig.add_subplot(111)
     for i,T in zip(np.linspace(0,0.8,5),range(250,300,10)):
         oneT = result[np.where(result['Temperature'] == T)]
@@ -37,8 +37,8 @@ def plotOneTemp(atm):
 
 
     ax1.legend(loc="lower right")
-    ax1.set_xlabel("IWV (kg/m2)")
-    ax1.set_ylabel("FLXD (W/m2)")
+    ax1.set_xlabel("IWV [kg/$m^2$]")
+    ax1.set_ylabel("FLXD [W/$m^2$]")
 
     plt.savefig("oneTemp_%s.png"%atm, dpi=800)
 
@@ -78,8 +78,8 @@ def plotATMS():
 
 
     ax1.legend(loc="lower right")
-    ax1.set_xlabel("IWV (kg/m2)")
-    ax1.set_ylabel("FLXD (W/m2)")
+    ax1.set_xlabel("IWV [kg/$m^2$]")
+    ax1.set_ylabel("FLXD [W/$m^2$]")
     plt.savefig("ATMS.png", dpi=800)
 
 

@@ -56,7 +56,7 @@ def atmHist():
     plot = df.plot(kind='bar', color=colors, width=.8, figsize=(8, 6))
     plot.set_ylabel("Correlation coefficient")
     plot.set_xlabel("Station")
-    legend = plot.legend(frameon=True, loc="lower left")
+    legend = plot.legend(frameon=True, loc="lower left",ncol=2)
     legend.set_facecolor = "white"
     plt.tight_layout()
     plt.savefig("statistics/Correlation.png", dpi=600)
@@ -111,10 +111,10 @@ def RMSEHIST():
 
 
     plot = df.plot(kind='bar', color=colors, width=.8, figsize=(8, 6))
-    plot.set_ylabel("RMSE [kg/m2]")
+    plot.set_ylabel("RMSE [kg/m$^2$]")
     plot.set_xlabel("Station")
     plot.set_ylim(0,15)
-    legend = plot.legend(frameon=True, loc="lower left")
+    legend = plot.legend(frameon=True, loc="upper right",ncol=2)
     legend.set_facecolor = "white"
     plt.tight_layout()
     plt.savefig("statistics/RMSE.png", dpi=600)
@@ -168,10 +168,10 @@ def BIASHIST():
 
 
     plot = df.plot(kind='bar', color=colors, width=.8, figsize=(8, 6))
-    plot.set_ylabel("BIAS [kg/m2]")
+    plot.set_ylabel("BIAS [kg/m$^2$]")
     plot.set_xlabel("Station")
     plot.set_ylim(-5,10)
-    legend = plot.legend(frameon=True, loc="lower left")
+    legend = plot.legend(frameon=True, loc="lower left",ncol=2)
     legend.set_facecolor = "white"
     plt.tight_layout()
     plt.savefig("statistics/BIAS.png", dpi=600)
@@ -223,10 +223,10 @@ def VARHIST():
 
 
     plot = df.plot(kind='bar', color=colors, width=.8, figsize=(8, 6))
-    plot.set_ylabel("BIAS [kg/m2]")
+    plot.set_ylabel("Varianz [kg/m$^2$]")
     plot.set_xlabel("Station")
     plot.set_ylim(0,60)
-    legend = plot.legend(frameon=True, loc="lower left")
+    legend = plot.legend(frameon=True, loc="upper right",ncol=2)
     legend.set_facecolor = "white"
     plt.tight_layout()
     plt.savefig("statistics/VAR.png", dpi=600)

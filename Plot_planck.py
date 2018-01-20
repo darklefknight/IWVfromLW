@@ -1,9 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.transforms as mtransforms
+from matplotlib.ticker import FuncFormatter
 import seaborn
 
-def planck(T,v):
+def planck_v(T, v):
     h = 6.62607004e-34
     c = 3e8
     k = 1.38064852e-23
@@ -24,9 +25,29 @@ def planck(T,v):
         print(zaehler,nenner,power,klammer)
     return B
 
+def planck_l(T,l):
+    h = 6.62607004e-34
+    c = 3e8
+    k = 1.38064852e-23
+
+    zaehler = np.multiply(2*h,np.power(c,2))
+    klammer = np.subtract(
+        np.exp(
+            np.divide(np.multiply(h,c),
+                      np.multiply(np.multiply(k,T),l))),
+        1)
+    power = np.power(l,5)
+    nenner = np.multiply(power,klammer)
+    B = np.divide(zaehler,nenner)
+
+    return B
+
 def m2v(m):
     c = 3e8
     return np.divide(c,m)
+
+def micrometer(x,pos):
+    return "%i"%int(round(x*1e6,0))
 
 if __name__ == "__main__":
     seaborn.set()
@@ -36,39 +57,46 @@ if __name__ == "__main__":
     micro = 1e-6
 
 
-    sw = m2v((0.38*micro,5*micro))
-    lw = m2v((5*micro,100*micro))
+    # sw = m2v((0.38*micro,5*micro))
+    # lw = m2v((5*micro,100*micro))
+
+    sw = (0.38 * micro, 4.3 * micro)
+    lw = (4.3 * micro, 100 * micro)
 
     print(lw,sw)
     sonne_i = np.zeros(100000)
     erde_i = sonne_i.copy()
-    frequency = sonne_i.copy()
+    length = sonne_i.copy()
 
 
 
-    for i,v in enumerate(np.linspace(int(1e7), int(1e16), len(sonne_i))):
-        sonne_i[i] = planck(6000, v)
-        erde_i[i] = planck(280,v)
-        frequency[i] = v
+    for i,l in enumerate(np.linspace(0.001*micro, 50*micro, len(sonne_i))):
+        sonne_i[i] = planck_l(6000, l)
+        erde_i[i] = planck_l(280, l)
+        length[i] = l
 
+    formatter = FuncFormatter(micrometer)
+    sonne_area = np.trapz(y=sonne_i,x=length)
+    erde_area = np.trapz(y=erde_i,x=length)
     fig,ax = plt.subplots(nrows=1,ncols=1,figsize=(16,6))
-    plt.title("Plancksches Strahlungsgesetz", fontsize=20)
-    ax.plot(frequency, np.divide(sonne_i,np.max(sonne_i)), color="orange",label="Sonne")
-    ax.plot(frequency,np.divide(erde_i,np.max(erde_i)),color="blue",label="Erde")
+    # plt.title("Plancksches Strahlungsgesetz", fontsize=20)
+    ax.plot(length, np.divide(sonne_i,sonne_area), color="orange",label="Sonne")
+    ax.plot(length,np.divide(erde_i,erde_area),color="blue",label="Erde")
 
     trans = mtransforms.blended_transform_factory(ax.transData, ax.transAxes)
-    ax.fill_between(frequency,0,1,where=((lw[1]<frequency) & (frequency<lw[0])),facecolor="red",alpha=0.5,transform=trans, label="langwelliger Bereich")
-    ax.fill_between(frequency,0,1,where=((sw[1]<frequency) & (frequency<sw[0])),facecolor="yellow",alpha=0.5,transform=trans, label="kurzwelliger Bereich")
+    ax.fill_between(length,0,np.nanmax(sonne_i),where=((lw[0]<length) & (length<lw[1])),facecolor="red",alpha=0.5,transform=trans, label="langwelliger Bereich")
+    ax.fill_between(length,0,np.nanmax(sonne_i),where=((sw[0]<length) & (length<sw[1])),facecolor="yellow",alpha=0.5,transform=trans, label="kurzwelliger Bereich")
 
+    # ax.ticklabel_format(axis="x",style="sci",scilimits=(0,0))
+    ax.xaxis.set_major_formatter(formatter)
+    ax.set_xlim(0,50e-6)
+    ax.set_ylim(0,1e5)
 
-    ax.set_xlim(1e7,0.2e16)
-    # ax.set_ylim(1e-20,1e-5)
-
-    ax.set_xlabel("Frequenz [Hz]",fontsize=font)
-    ax.set_ylabel("Intensität [$W\,m^{-2}\,sr^{-1}\,Hz^{-1}$]",fontsize=font)
+    ax.set_xlabel("Wellenlänge [$\mu$m]",fontsize=font)
+    ax.set_ylabel("Normierte Intensität [$m^{-1}$]",fontsize=font)
     plt.gca().tick_params(axis='both', which='major', labelsize=16)
 
-    ax.legend(loc="upper left", fontsize=font)
+    ax.legend(loc="upper right", fontsize=font)
     plt.tight_layout()
     plt.savefig("Planck-funktion.png", dpi=200)
     plt.show()

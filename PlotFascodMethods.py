@@ -10,7 +10,7 @@ if __name__ == "__main__":
     atm = get_sadata_atmosphere(season="US-standard")
 
     fig,(ax1,ax2,ax3) = plt.subplots(nrows=1,ncols=3,figsize=(16,9),sharey=True)
-    fig.suptitle("Manipulation der Temperatur- und Feuchteprofile",fontsize=22)
+    # fig.suptitle("Manipulation der Temperatur- und Feuchteprofile",fontsize=22)
 
     temperaturverschiebung = 20
 
@@ -24,7 +24,7 @@ if __name__ == "__main__":
     ax1.set_ylim(100000,0)
 
     ax1.set_xlabel("Temperatur [K]\n\n(a)", fontsize=font)
-    ax1.set_ylabel("Druck [Pa]",fontsize=font)
+    ax1.set_ylabel("Luftdruck [Pa]",fontsize=font)
     legend = ax1.legend(loc="upper right",fontsize=font,frameon=True)
     legend.set_facecolor = "white"
     ax1.set_title("Temperaturverschiebung",fontsize=font)
